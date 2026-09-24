@@ -1,15 +1,27 @@
-# PancaQuest Adventure Semi-3D v1.3 — Level Transition Fixed
+# PancaQuest Adventure Semi-3D v1.4 — Real Level 2
 
-Perbaikan utama:
-- Setelah Final Mission Level 1, kini muncul modal **LEVEL 1 SELESAI**.
-- Ada tombol besar **Lanjut ke Level 2 →**.
-- Portal **LEVEL 2** juga muncul di area Taman.
-- Misi Saat Ini memberi petunjuk yang benar setelah Level 1 selesai.
-- Nadia tidak lagi menampilkan petunjuk generik yang membingungkan.
-- Level 1 tidak lagi menandai seluruh PancaQuest sebagai selesai; progres disimpan untuk melanjutkan Level 2–4.
+Perbaikan utama dari v1.3:
+- Tombol **Lanjut ke Level 2** sekarang benar-benar mengganti map.
+- Level 2 menggunakan arena **Taman Nilai** yang berbeda dari map Sekolah.
+- Pemain harus mengumpulkan 4 nilai positif:
+  - Toleransi
+  - Gotong Royong
+  - Musyawarah
+  - Keadilan
+- Pemain harus menghindari:
+  - Egoisme
+  - Diskriminasi
+  - Intoleransi
+  - Memaksakan Kehendak
+- Progress Level 2 bergerak 0 → 100%.
+- Setelah 4 nilai terkumpul, muncul modal **Level 2 Selesai**.
+- Tombol Level 3 sudah tersedia sebagai preview transisi.
 
-Alur:
-Nadia → Perpustakaan → Pak Budi → Taman → Final Sekolah → Modal Level 1 Selesai → Level 2.
+Kontrol:
+- Laptop: WASD / Arrow
+- Interaksi Level 1: E / Space
+- Level 2: koleksi item otomatis ketika karakter menyentuh nilai
+- HP: joystick analog
 
 Catatan:
-Level 2 pada v1.3 masih berupa transisi/preview. Gameplay Level 2 penuh (mengumpulkan nilai baik dan menghindari perilaku negatif) adalah tahap pengembangan berikutnya.
+Level 3 pada v1.4 baru berupa preview transisi. Gameplay Level 3 penuh belum ditambahkan.

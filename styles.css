@@ -274,3 +274,114 @@ kbd{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-rig
 }
 .level2-portal span{font-size:18px;color:#ffe45d}
 @keyframes portalPulse{to{transform:translateX(-50%) translateY(-7px) scale(1.05)}}
+
+
+/* ==========================================================
+   v1.4 — REAL LEVEL 2: TAMAN NILAI
+   ========================================================== */
+.level2-scene{
+  position:absolute;inset:0;z-index:12;overflow:hidden;
+  background:
+    radial-gradient(circle at 20% 15%,rgba(255,255,255,.22) 0 2px,transparent 3px),
+    radial-gradient(circle at 82% 18%,rgba(255,255,255,.16) 0 2px,transparent 3px),
+    linear-gradient(180deg,#91e17b 0%,#69cb61 100%);
+  background-size:140px 140px,180px 180px,auto;
+}
+.level2-scene:before{
+  content:"";position:absolute;left:0;right:0;top:44%;height:18%;
+  background:linear-gradient(#e3cda3,#f0dbb5,#d8bd8b);
+  box-shadow:inset 0 3px rgba(255,255,255,.3),inset 0 -3px rgba(148,101,46,.12);
+}
+.level2-scene:after{
+  content:"";position:absolute;top:0;bottom:0;left:45%;width:10%;
+  background:linear-gradient(90deg,#d5bd92,#f0dbb2,#d4bb8c);
+}
+.l2-bg-grid{
+  position:absolute;inset:0;opacity:.12;
+  background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);
+  background-size:50px 50px;
+}
+.l2-title-board{
+  position:absolute;left:50%;top:18px;transform:translateX(-50%);z-index:14;
+  min-width:350px;text-align:center;padding:10px 18px;border-radius:18px;
+  background:rgba(15,68,62,.85);border:1px solid rgba(255,255,255,.2);
+  box-shadow:0 12px 28px rgba(14,64,48,.24);backdrop-filter:blur(7px)
+}
+.l2-title-board small{display:block;color:#d8ff89;font-weight:900;letter-spacing:.1em}
+.l2-title-board strong{display:block;font-size:18px}
+.l2-title-board span{font-size:11px;color:#d7fff0}
+
+.l2-tree{position:absolute;width:74px;height:105px;z-index:13}
+.l2-tree:before{content:"";position:absolute;left:31px;bottom:0;width:14px;height:42px;background:#8a5632;border-radius:5px}
+.l2-tree:after{content:"";position:absolute;left:5px;top:0;width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#75d87a 0 22%,#35ad54 25% 55%,#1d8e43 58%);box-shadow:-20px 15px 0 -10px #45bb5c,19px 15px 0 -10px #2c9d4c}
+.lt1{left:6%;top:8%}.lt2{right:7%;top:8%}.lt3{left:5%;bottom:8%}.lt4{right:5%;bottom:7%}
+
+.l2-flowerbed{position:absolute;width:130px;height:34px;border-radius:50%;background:
+ radial-gradient(circle at 10% 50%,#ff7aa2 0 7px,transparent 8px),
+ radial-gradient(circle at 30% 55%,#ffd45e 0 7px,transparent 8px),
+ radial-gradient(circle at 50% 45%,#c084fc 0 7px,transparent 8px),
+ radial-gradient(circle at 70% 58%,#ff7aa2 0 7px,transparent 8px),
+ radial-gradient(circle at 90% 48%,#ffd45e 0 7px,transparent 8px),
+ #3ba554;z-index:13}
+.fb1{left:8%;top:38%}.fb2{right:8%;bottom:26%}
+
+.l2-pond{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:170px;height:110px;border-radius:50%;background:radial-gradient(ellipse,#9be8ff 0 35%,#43bde7 38% 58%,#2a8ebd 60%);border:10px solid #a8a8a8;box-shadow:0 10px 25px rgba(26,101,134,.25);z-index:13}
+.l2-bridge{position:absolute;left:42%;top:47%;width:16%;height:9%;background:repeating-linear-gradient(90deg,#8b562e 0 10px,#b77945 10px 19px);border:4px solid #6a4027;border-radius:16px;z-index:14;box-shadow:0 8px 12px rgba(0,0,0,.18)}
+
+.value-orb,.hazard-orb{
+  position:absolute;z-index:16;transform:translate(-50%,-50%);
+  width:110px;min-height:86px;border-radius:22px;display:grid;place-items:center;
+  text-align:center;padding:8px;border:3px solid rgba(255,255,255,.82);
+  box-shadow:0 12px 24px rgba(0,0,0,.18);transition:.22s;user-select:none;
+}
+.value-orb{background:linear-gradient(145deg,#e8fff0,#9bf0b6);color:#155b36;cursor:pointer}
+.value-orb span,.hazard-orb span{font-size:30px;display:block}
+.value-orb b,.hazard-orb b{font-size:11px}
+.value-orb:after{
+  content:"";position:absolute;inset:-8px;border-radius:28px;border:2px solid rgba(73,234,132,.42);
+  animation:goodPulse .9s ease-in-out infinite alternate
+}
+@keyframes goodPulse{to{transform:scale(1.08);opacity:.35}}
+.value-orb.collected{opacity:0;transform:translate(-50%,-50%) scale(.3);pointer-events:none}
+
+.hazard-orb{background:linear-gradient(145deg,#ffe7e7,#ff9d9d);color:#812020}
+.hazard-orb.hit{animation:hazardHit .35s}
+@keyframes hazardHit{25%{transform:translate(-57%,-50%)}50%{transform:translate(-43%,-50%)}75%{transform:translate(-54%,-50%)}}
+.l2-counter{
+  position:absolute;right:18px;top:18px;z-index:18;padding:9px 14px;border-radius:15px;
+  background:rgba(10,65,61,.88);border:1px solid rgba(255,255,255,.17);
+  box-shadow:0 9px 22px rgba(0,0,0,.18);text-align:center
+}
+.l2-counter span{display:block;font-size:9px;color:#caffdc}.l2-counter strong{font-size:16px}
+.l2-message{
+  position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:18;
+  background:rgba(10,42,91,.9);border:1px solid rgba(255,255,255,.15);
+  border-radius:14px;padding:9px 16px;font-size:11px;color:#e7efff;
+  box-shadow:0 10px 25px rgba(0,0,0,.18)
+}
+
+/* hide Level 1 scenery when real Level 2 is active */
+.game-area.level2-active .school,
+.game-area.level2-active .library,
+.game-area.level2-active .park,
+.game-area.level2-active .tree,
+.game-area.level2-active .lamp,
+.game-area.level2-active .bench,
+.game-area.level2-active .value-sign,
+.game-area.level2-active .path-vertical,
+.game-area.level2-active .path-horizontal,
+.game-area.level2-active .tactile,
+.game-area.level2-active .npc,
+.game-area.level2-active .mini-map{
+  display:none!important;
+}
+.game-area.level2-active .player{z-index:30}
+.game-area.level2-active .mission-card{z-index:40}
+.game-area.level2-active .hud{z-index:45}
+
+@media(max-width:700px){
+  .l2-title-board{min-width:260px;top:70px}
+  .value-orb,.hazard-orb{width:88px;min-height:72px}
+  .l2-pond{width:135px;height:88px}
+}

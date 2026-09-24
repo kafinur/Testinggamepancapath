@@ -14,7 +14,7 @@
         <div class="brand-mark">📘</div>
         <div>
           <h1>PancaQuest <span>Adventure</span></h1>
-          <p>PancaPath • Kepribadian Bangsa • v1.3</p>
+          <p>PancaPath • Kepribadian Bangsa • v1.4</p>
         </div>
       </div>
 
@@ -161,6 +161,63 @@
         </div>
       </div>
 
+
+      <!-- LEVEL 2 REAL SCENE -->
+      <section id="level2Scene" class="level2-scene hidden" aria-label="Level 2 Taman Nilai">
+        <div class="l2-bg-grid"></div>
+        <div class="l2-title-board">
+          <small>LEVEL 2</small>
+          <strong>Taman Nilai</strong>
+          <span>Kumpulkan nilai baik, hindari perilaku negatif</span>
+        </div>
+
+        <div class="l2-tree lt1"></div>
+        <div class="l2-tree lt2"></div>
+        <div class="l2-tree lt3"></div>
+        <div class="l2-tree lt4"></div>
+        <div class="l2-flowerbed fb1"></div>
+        <div class="l2-flowerbed fb2"></div>
+        <div class="l2-pond"></div>
+        <div class="l2-bridge"></div>
+
+        <!-- GOOD VALUES -->
+        <button class="value-orb good-value" data-value="Toleransi" data-id="good1" style="left:14%;top:28%">
+          <span>🤝</span><b>Toleransi</b>
+        </button>
+        <button class="value-orb good-value" data-value="Gotong Royong" data-id="good2" style="left:70%;top:25%">
+          <span>🫶</span><b>Gotong Royong</b>
+        </button>
+        <button class="value-orb good-value" data-value="Musyawarah" data-id="good3" style="left:20%;top:68%">
+          <span>🗣️</span><b>Musyawarah</b>
+        </button>
+        <button class="value-orb good-value" data-value="Keadilan" data-id="good4" style="left:74%;top:69%">
+          <span>⚖️</span><b>Keadilan</b>
+        </button>
+
+        <!-- NEGATIVE BEHAVIORS -->
+        <div class="hazard-orb" data-hazard="Egoisme" data-id="bad1" style="left:45%;top:24%">
+          <span>😠</span><b>Egoisme</b>
+        </div>
+        <div class="hazard-orb" data-hazard="Diskriminasi" data-id="bad2" style="left:53%;top:57%">
+          <span>🚫</span><b>Diskriminasi</b>
+        </div>
+        <div class="hazard-orb" data-hazard="Intoleransi" data-id="bad3" style="left:35%;top:77%">
+          <span>💢</span><b>Intoleransi</b>
+        </div>
+        <div class="hazard-orb" data-hazard="Memaksakan Kehendak" data-id="bad4" style="left:62%;top:78%">
+          <span>✋</span><b>Memaksa</b>
+        </div>
+
+        <div class="l2-counter">
+          <span>Nilai ditemukan</span>
+          <strong><span id="l2Collected">0</span>/4</strong>
+        </div>
+
+        <div id="l2Message" class="l2-message">
+          🌳 Bergeraklah di taman dan sentuh 4 nilai positif.
+        </div>
+      </section>
+
       <!-- DIALOGUE -->
       <aside id="dialogue" class="dialogue-card hidden" aria-live="polite">
         <div class="dialogue-avatar">👧</div>
@@ -239,6 +296,24 @@
         </div>
         <button id="goLevel2Btn" class="next-level-btn">Lanjut ke Level 2 →</button>
         <small class="next-note">Level 2: Taman Nilai • Kumpulkan Nilai Baik</small>
+      </div>
+    </div>
+
+
+    <!-- LEVEL 2 COMPLETE -->
+    <div id="level2CompleteModal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="level-complete-card l2-complete">
+        <div class="trophy-big">🌟</div>
+        <span class="complete-kicker">LEVEL 2 SELESAI</span>
+        <h2>Taman Nilai • Kumpulkan Nilai Baik</h2>
+        <p>Kamu berhasil mengumpulkan <strong>Toleransi, Gotong Royong, Musyawarah, dan Keadilan</strong>.</p>
+        <div class="complete-stats">
+          <div><small>Nilai Positif</small><strong>4 / 4</strong></div>
+          <div><small>Total XP</small><strong id="l2TotalXp">125 XP</strong></div>
+        </div>
+        <button id="goLevel3Btn" class="next-level-btn">Lanjut ke Level 3 →</button>
+        <small class="next-note">Level 3: Ruang Musyawarah • Pilih Solusinya</small>
       </div>
     </div>
 

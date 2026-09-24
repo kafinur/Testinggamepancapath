@@ -38,6 +38,12 @@ const schoolPrompt = document.getElementById('schoolPrompt');
 const level2Portal = document.getElementById('level2Portal');
 const levelCompleteModal = document.getElementById('levelCompleteModal');
 const goLevel2Btn = document.getElementById('goLevel2Btn');
+const level2Scene = document.getElementById('level2Scene');
+const l2CollectedText = document.getElementById('l2Collected');
+const l2Message = document.getElementById('l2Message');
+const level2CompleteModal = document.getElementById('level2CompleteModal');
+const l2TotalXp = document.getElementById('l2TotalXp');
+const goLevel3Btn = document.getElementById('goLevel3Btn');
 
 let state = {
   x: 47,
@@ -46,7 +52,11 @@ let state = {
   progress: 25,
   paused: false,
   stage: 0, // 0 Nadia, 1 Library, 2 Pak Budi, 3 Park, 4 Final School, 5 Complete
-  lastDir: 'down'
+  lastDir: 'down',
+  currentLevel: 1,
+  level2Collected: [],
+  totalXp: 100,
+  lastHazardHit: 0
 };
 
 const keys = {};
@@ -115,6 +125,7 @@ function frame(now){
   if(keys['d']||keys['arrowright']) dx += speed*dt/16;
   if(dx||dy) move(dx,dy); else player.classList.remove('moving');
   updateNearPrompts();
+  if(state.currentLevel===2) checkLevel2Collisions();
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
@@ -158,12 +169,23 @@ function nearRect(el, threshold=85){
 }
 
 function updateNearPrompts(){
+  if(state.currentLevel!==1){
+    libraryPrompt.classList.add('hidden');
+    parkPrompt.classList.add('hidden');
+    schoolPrompt.classList.add('hidden');
+    return;
+  }
   libraryPrompt.classList.toggle('hidden', !(state.stage===1 && nearRect(libraryArea,110)));
   parkPrompt.classList.toggle('hidden', !(state.stage===3 && nearRect(parkArea,110)));
   schoolPrompt.classList.toggle('hidden', !(state.stage===4 && nearRect(schoolArea,120)));
 }
 
 function interact(){
+  if(state.currentLevel===2){
+    l2Message.textContent='🌳 Bergeraklah menuju nilai positif. Nilai akan otomatis terambil saat disentuh.';
+    return;
+  }
+
   const nadia=document.querySelector('.npc-nadia');
   const teacher=document.querySelector('.npc-teacher');
 
@@ -197,7 +219,7 @@ function interact(){
   }
 
   // Setelah Level 1 selesai, portal Level 2 berada di Taman.
-  if(state.stage===5 && nearRect(parkArea,130)){
+  if(state.stage===5 && state.currentLevel===1 && nearRect(parkArea,130)){
     startLevel2Preview();
     return;
   }
@@ -370,30 +392,141 @@ function completeLevel(){
 function startLevel2Preview(){
   levelCompleteModal.classList.add('hidden');
 
-  // Transisi visual ke Level 2.
+  state.currentLevel = 2;
+  state.level2Collected = [];
+  state.totalXp = 100;
+
   document.querySelector('.level-top span').textContent='LEVEL 2';
   document.querySelector('.level-top strong').textContent='Taman Nilai • Kumpulkan Nilai Baik';
   progressBar.style.width='0%';
   progressText.textContent='0%';
 
   missionTitle.textContent='Level 2 • Taman Nilai';
-  missionText.textContent='Masuki area Taman. Level berikutnya akan berfokus pada mengumpulkan nilai baik dan menghindari perilaku negatif.';
+  missionText.textContent='Kumpulkan 4 nilai positif dan hindari perilaku negatif. Sentuh nilai positif untuk mengambilnya.';
+  xpText.textContent='100 XP';
 
-  // Arahkan karakter mendekati Taman.
-  state.x = 76;
-  state.y = 52;
+  // Switch actual map
+  gameArea.classList.add('level2-active');
+  level2Scene.classList.remove('hidden');
+
+  // Reset positions of collectibles
+  document.querySelectorAll('.good-value').forEach(el=>el.classList.remove('collected'));
+  l2CollectedText.textContent='0';
+  l2Message.textContent='🌳 Bergeraklah di taman dan sentuh 4 nilai positif.';
+
+  // Move character to Level 2 spawn point.
+  state.x = 48;
+  state.y = 76;
   updatePlayer();
 
-  // Tampilkan penanda Taman sebagai pintu Level 2.
-  level2Portal.classList.remove('hidden');
-
-  openDialogue(
-    '🌳 Level 2 — Taman Nilai',
-    'Kamu sudah masuk ke gerbang Level 2. Pada pengembangan berikutnya, di sini kamu akan mengumpulkan Toleransi, Gotong Royong, Musyawarah, dan Keadilan sambil menghindari Egoisme, Diskriminasi, Intoleransi, serta Memaksakan Kehendak.'
-  );
+  localStorage.setItem('pancaquest_adventure_progress', JSON.stringify({
+    currentLevel:2,
+    level1Completed:true,
+    level2Completed:false,
+    totalXp:100,
+    updated_at:new Date().toISOString()
+  }));
 }
 
 goLevel2Btn.addEventListener('click', startLevel2Preview);
+
+
+function rectDistanceBetween(a,b){
+  const ra=a.getBoundingClientRect(), rb=b.getBoundingClientRect();
+  const ax=ra.left+ra.width/2, ay=ra.top+ra.height/2;
+  const bx=rb.left+rb.width/2, by=rb.top+rb.height/2;
+  return Math.hypot(ax-bx, ay-by);
+}
+
+function checkLevel2Collisions(){
+  if(state.currentLevel!==2 || state.paused) return;
+
+  const now=Date.now();
+
+  document.querySelectorAll('.good-value:not(.collected)').forEach(el=>{
+    if(rectDistanceBetween(player,el) < 64){
+      collectGoodValue(el);
+    }
+  });
+
+  document.querySelectorAll('.hazard-orb').forEach(el=>{
+    if(rectDistanceBetween(player,el) < 62 && now-state.lastHazardHit>1100){
+      state.lastHazardHit=now;
+      hitHazard(el);
+    }
+  });
+}
+
+function collectGoodValue(el){
+  const id=el.dataset.id;
+  if(state.level2Collected.includes(id)) return;
+
+  state.level2Collected.push(id);
+  el.classList.add('collected');
+
+  const count=state.level2Collected.length;
+  l2CollectedText.textContent=String(count);
+
+  state.totalXp = 100 + count*6 + (count===4 ? 1 : 0); // 125 max after Level 2
+  xpText.textContent=state.totalXp+' XP';
+
+  const pct=Math.round(count/4*100);
+  progressBar.style.width=pct+'%';
+  progressText.textContent=pct+'%';
+
+  l2Message.textContent=`✅ ${el.dataset.value} ditemukan! (${count}/4)`;
+
+  if(count===4){
+    setTimeout(completeLevel2,700);
+  }
+}
+
+function hitHazard(el){
+  el.classList.add('hit');
+  setTimeout(()=>el.classList.remove('hit'),400);
+
+  l2Message.textContent=`⚠️ Hindari ${el.dataset.hazard}. Cari nilai positif di sekitarmu.`;
+
+  // small pushback
+  state.x = clamp(state.x - 2.3,2,94);
+  state.y = clamp(state.y + 1.4,7,84);
+  updatePlayer();
+}
+
+function completeLevel2(){
+  state.currentLevel=2;
+  state.totalXp=125;
+  xpText.textContent='125 XP';
+  progressBar.style.width='100%';
+  progressText.textContent='100%';
+  missionTitle.textContent='Level 2 Selesai!';
+  missionText.textContent='Kamu telah mengumpulkan empat nilai positif. Level 3 siap dibuka.';
+  l2TotalXp.textContent='125 XP';
+
+  localStorage.setItem('pancaquest_adventure_progress', JSON.stringify({
+    currentLevel:3,
+    level1Completed:true,
+    level2Completed:true,
+    totalXp:125,
+    updated_at:new Date().toISOString()
+  }));
+
+  level2CompleteModal.classList.remove('hidden');
+}
+
+goLevel3Btn.addEventListener('click',()=>{
+  level2CompleteModal.classList.add('hidden');
+  openDialogue(
+    '🗣️ Level 3 — Ruang Musyawarah',
+    'Level 3 akan berfokus pada memilih solusi dan melihat konsekuensi setiap keputusan. Pada versi berikutnya, area ini akan menjadi ruang musyawarah interaktif.'
+  );
+  document.querySelector('.level-top span').textContent='LEVEL 3';
+  document.querySelector('.level-top strong').textContent='Ruang Musyawarah • Pilih Solusinya';
+  progressBar.style.width='0%';
+  progressText.textContent='0%';
+  missionTitle.textContent='Level 3 • Ruang Musyawarah';
+  missionText.textContent='Preview Level 3 terbuka. Gameplay Level 3 penuh akan dikembangkan pada tahap berikutnya.';
+});
 
 closeQuizBtn.addEventListener('click',()=>quizModal.classList.add('hidden'));
 actionBtn.addEventListener('click',interact);
