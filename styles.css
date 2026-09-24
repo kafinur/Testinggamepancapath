@@ -385,3 +385,35 @@ kbd{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-rig
   .value-orb,.hazard-orb{width:88px;min-height:72px}
   .l2-pond{width:135px;height:88px}
 }
+
+
+/* ==========================================================
+   v1.5 — LEVEL 3: RUANG MUSYAWARAH
+   ========================================================== */
+.level3-scene{position:absolute;inset:0;z-index:12;overflow:hidden;background:linear-gradient(180deg,#d8ecff 0 22%,#f6e8cf 22% 100%)}
+.l3-wall{position:absolute;left:0;right:0;top:0;height:24%;background:repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 38px,rgba(255,255,255,.12) 38px 76px),linear-gradient(#8fc2f0,#b7dafa);border-bottom:8px solid #c7a76f}
+.level3-scene:after{content:"";position:absolute;inset:24% 0 0;background:linear-gradient(90deg,rgba(124,87,46,.08) 1px,transparent 1px),linear-gradient(rgba(124,87,46,.08) 1px,transparent 1px),linear-gradient(#ead7b5,#f4e6cc);background-size:58px 58px,58px 58px,auto;pointer-events:none}
+.l3-stage{position:absolute;left:50%;top:5%;transform:translateX(-50%);z-index:14;width:min(480px,60%);padding:11px 16px;text-align:center;border-radius:16px;background:linear-gradient(150deg,#183f98,#0c2d78);border:2px solid rgba(255,255,255,.25);box-shadow:0 14px 30px rgba(20,50,106,.22)}
+.l3-stage .garuda-emblem{font-size:26px}.l3-stage strong{display:block;font-size:16px;color:#fff}.l3-stage span{font-size:10px;color:#cfe0ff}
+.l3-table{position:absolute;z-index:14;width:180px;height:70px;background:linear-gradient(#b97840,#7d4828);border:5px solid #6a3c23;border-radius:44% 44% 18px 18px;box-shadow:0 16px 0 -8px rgba(74,43,25,.4)}
+.table-a{left:11%;top:35%}.table-b{right:11%;top:35%}.table-c{left:50%;top:69%;transform:translateX(-50%)}
+.l3-npc{position:absolute;z-index:17;width:128px;text-align:center;color:#18355f;background:rgba(255,255,255,.9);border:2px solid #cbdcf4;border-radius:15px;padding:9px;box-shadow:0 10px 22px rgba(47,70,109,.15)}
+.l3-avatar{font-size:34px}.l3-npc b{display:block;font-size:12px}.l3-npc small{font-size:9px;color:#607394}
+.npc-a{left:13%;top:24%}.npc-b{right:13%;top:24%}.npc-c{left:50%;top:55%;transform:translateX(-50%)}
+.decision-point{position:absolute;z-index:20;width:190px;min-height:86px;padding:10px 12px;border-radius:18px;border:3px solid #fff;background:linear-gradient(145deg,#e9f3ff,#b7d6ff);color:#163a75;box-shadow:0 12px 26px rgba(21,67,135,.2);cursor:pointer;transition:.2s}
+.decision-point>span{display:grid;place-items:center;width:28px;height:28px;margin:0 auto 4px;border-radius:50%;background:#1f5fd0;color:white;font-weight:1000}
+.decision-point b{display:block;font-size:12px}.decision-point small{font-size:9px;color:#5b7199}
+.decision-point:not(.locked){animation:decisionPulse 1s ease-in-out infinite alternate}
+@keyframes decisionPulse{to{transform:translateY(-5px);box-shadow:0 18px 32px rgba(21,67,135,.28)}}
+.decision-point.locked{filter:grayscale(.8);opacity:.48;cursor:not-allowed;animation:none}
+.decision-point.completed{background:linear-gradient(145deg,#e8fff0,#9beab7);color:#155b36;border-color:#dcffe8;animation:none}
+.dp1{left:16%;top:51%}.dp2{right:16%;top:51%}.dp3{left:50%;bottom:7%;transform:translateX(-50%)}
+.dp3:not(.locked){animation:decisionPulseCenter 1s ease-in-out infinite alternate}
+@keyframes decisionPulseCenter{to{transform:translate(-50%,-5px);box-shadow:0 18px 32px rgba(21,67,135,.28)}}
+.l3-status{position:absolute;right:18px;top:18px;z-index:25;background:rgba(13,48,105,.9);color:#fff;border-radius:14px;padding:9px 14px;border:1px solid rgba(255,255,255,.18)}
+.l3-status span{display:block;font-size:9px;color:#cfe0ff}.l3-status strong{font-size:16px}
+.l3-message{position:absolute;left:50%;bottom:15px;transform:translateX(-50%);z-index:24;background:rgba(13,48,105,.92);color:#eef5ff;border-radius:14px;padding:9px 16px;border:1px solid rgba(255,255,255,.15);font-size:11px;box-shadow:0 10px 22px rgba(0,0,0,.16)}
+.game-area.level3-active .school,.game-area.level3-active .library,.game-area.level3-active .park,.game-area.level3-active .tree,.game-area.level3-active .lamp,.game-area.level3-active .bench,.game-area.level3-active .value-sign,.game-area.level3-active .path-vertical,.game-area.level3-active .path-horizontal,.game-area.level3-active .tactile,.game-area.level3-active .npc,.game-area.level3-active .mini-map,.game-area.level3-active .level2-scene{display:none!important}
+.game-area.level3-active .player{z-index:30}.game-area.level3-active .mission-card{z-index:40}.game-area.level3-active .hud{z-index:45}
+@media(max-width:720px){.decision-point{width:150px;min-height:75px}.dp1{left:5%;top:54%}.dp2{right:5%;top:54%}.l3-npc{width:110px}}
+.sound-active{box-shadow:0 0 0 2px #68e89a inset,0 0 18px rgba(77,226,130,.35)!important}

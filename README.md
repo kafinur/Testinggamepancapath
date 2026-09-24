@@ -1,27 +1,31 @@
-# PancaQuest Adventure Semi-3D v1.4 — Real Level 2
+# PancaQuest Adventure Semi-3D v1.5 — Level 3 + Audio
 
-Perbaikan utama dari v1.3:
-- Tombol **Lanjut ke Level 2** sekarang benar-benar mengganti map.
-- Level 2 menggunakan arena **Taman Nilai** yang berbeda dari map Sekolah.
-- Pemain harus mengumpulkan 4 nilai positif:
-  - Toleransi
-  - Gotong Royong
-  - Musyawarah
-  - Keadilan
-- Pemain harus menghindari:
-  - Egoisme
-  - Diskriminasi
-  - Intoleransi
-  - Memaksakan Kehendak
-- Progress Level 2 bergerak 0 → 100%.
-- Setelah 4 nilai terkumpul, muncul modal **Level 2 Selesai**.
-- Tombol Level 3 sudah tersedia sebagai preview transisi.
+## Level 3 sudah playable
+Level 3: **Ruang Musyawarah — Pilih Solusinya**
 
-Kontrol:
-- Laptop: WASD / Arrow
-- Interaksi Level 1: E / Space
-- Level 2: koleksi item otomatis ketika karakter menyentuh nilai
-- HP: joystick analog
+Tahapan:
+1. Dengarkan Semua Pihak
+2. Bandingkan Alternatif
+3. Putuskan Bersama
 
-Catatan:
-Level 3 pada v1.4 baru berupa preview transisi. Gameplay Level 3 penuh belum ditambahkan.
+Setiap titik hanya terbuka setelah tahap sebelumnya selesai. Siswa bergerak ke titik aktif dan menekan E / Space / AKSI.
+
+## Audio / backsound
+Versi v1.5 menggunakan **Web Audio API**, sehingga tidak membutuhkan file MP3 eksternal.
+
+Tersedia:
+- backsound latar ringan bergaya game edukasi,
+- suara interaksi,
+- suara jawaban benar,
+- suara jawaban salah,
+- suara mengambil nilai pada Level 2,
+- suara selesai level.
+
+Catatan penting:
+Browser biasanya memblokir autoplay. Musik akan mulai setelah interaksi pertama pengguna (klik, sentuh, atau tombol keyboard). Tombol 🔊 di kanan atas dapat digunakan untuk mematikan/menyalakan audio.
+
+## Alur saat ini
+Level 1 Sekolah → Level 2 Taman Nilai → Level 3 Ruang Musyawarah → Preview Level 4 Kelas Aksi.
+
+## XP
+Adventure XP masih bersifat progres internal game. Sebelum dihubungkan kembali ke Form B, skor akhir akan dinormalisasi menjadi 0–100 agar sesuai kolom Skor PancaQuest.

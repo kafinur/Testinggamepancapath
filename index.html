@@ -14,7 +14,7 @@
         <div class="brand-mark">📘</div>
         <div>
           <h1>PancaQuest <span>Adventure</span></h1>
-          <p>PancaPath • Kepribadian Bangsa • v1.4</p>
+          <p>PancaPath • Kepribadian Bangsa • v1.5</p>
         </div>
       </div>
 
@@ -218,6 +218,56 @@
         </div>
       </section>
 
+
+      <!-- LEVEL 3 REAL SCENE -->
+      <section id="level3Scene" class="level3-scene hidden" aria-label="Level 3 Ruang Musyawarah">
+        <div class="l3-wall"></div>
+        <div class="l3-stage">
+          <div class="garuda-emblem">🦅</div>
+          <strong>RUANG MUSYAWARAH</strong>
+          <span>Dengar • Pertimbangkan • Putuskan</span>
+        </div>
+
+        <div class="l3-table table-a"></div>
+        <div class="l3-table table-b"></div>
+        <div class="l3-table table-c"></div>
+
+        <div class="l3-npc npc-a">
+          <div class="l3-avatar">👧</div>
+          <b>Kelompok A</b>
+          <small>Usulan Budaya Lokal</small>
+        </div>
+        <div class="l3-npc npc-b">
+          <div class="l3-avatar">🧑</div>
+          <b>Kelompok B</b>
+          <small>Usulan Budaya Populer</small>
+        </div>
+        <div class="l3-npc npc-c">
+          <div class="l3-avatar">👦</div>
+          <b>Ketua Kelas</b>
+          <small>Fasilitator Musyawarah</small>
+        </div>
+
+        <button class="decision-point dp1" data-decision="1">
+          <span>1</span><b>Dengarkan Semua Pihak</b><small>Dekati lalu E / AKSI</small>
+        </button>
+        <button class="decision-point dp2 locked" data-decision="2">
+          <span>2</span><b>Bandingkan Alternatif</b><small>Selesaikan tahap 1</small>
+        </button>
+        <button class="decision-point dp3 locked" data-decision="3">
+          <span>3</span><b>Putuskan Bersama</b><small>Selesaikan tahap 2</small>
+        </button>
+
+        <div class="l3-status">
+          <span>Tahap musyawarah</span>
+          <strong><span id="l3Done">0</span>/3</strong>
+        </div>
+
+        <div id="l3Message" class="l3-message">
+          🗣️ Mulailah dari titik 1: Dengarkan Semua Pihak.
+        </div>
+      </section>
+
       <!-- DIALOGUE -->
       <aside id="dialogue" class="dialogue-card hidden" aria-live="polite">
         <div class="dialogue-avatar">👧</div>
@@ -314,6 +364,24 @@
         </div>
         <button id="goLevel3Btn" class="next-level-btn">Lanjut ke Level 3 →</button>
         <small class="next-note">Level 3: Ruang Musyawarah • Pilih Solusinya</small>
+      </div>
+    </div>
+
+
+    <!-- LEVEL 3 COMPLETE -->
+    <div id="level3CompleteModal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="level-complete-card l3-complete">
+        <div class="trophy-big">🤝</div>
+        <span class="complete-kicker">LEVEL 3 SELESAI</span>
+        <h2>Ruang Musyawarah • Pilih Solusinya</h2>
+        <p>Kamu berhasil mendengar semua pihak, membandingkan alternatif, dan memilih solusi melalui musyawarah.</p>
+        <div class="complete-stats">
+          <div><small>Tahap Selesai</small><strong>3 / 3</strong></div>
+          <div><small>Adventure XP</small><strong id="l3TotalXp">150 XP</strong></div>
+        </div>
+        <button id="goLevel4Btn" class="next-level-btn">Lanjut ke Level 4 →</button>
+        <small class="next-note">Level 4: Kelas Aksi • Rancang Tindakan Nyata</small>
       </div>
     </div>
 

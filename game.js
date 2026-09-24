@@ -44,6 +44,12 @@ const l2Message = document.getElementById('l2Message');
 const level2CompleteModal = document.getElementById('level2CompleteModal');
 const l2TotalXp = document.getElementById('l2TotalXp');
 const goLevel3Btn = document.getElementById('goLevel3Btn');
+const level3Scene = document.getElementById('level3Scene');
+const l3DoneText = document.getElementById('l3Done');
+const l3Message = document.getElementById('l3Message');
+const level3CompleteModal = document.getElementById('level3CompleteModal');
+const l3TotalXp = document.getElementById('l3TotalXp');
+const goLevel4Btn = document.getElementById('goLevel4Btn');
 
 let state = {
   x: 47,
@@ -56,7 +62,10 @@ let state = {
   currentLevel: 1,
   level2Collected: [],
   totalXp: 100,
-  lastHazardHit: 0
+  lastHazardHit: 0,
+  level3Step: 0,
+  audioEnabled: true,
+  audioStarted: false
 };
 
 const keys = {};
@@ -126,6 +135,7 @@ function frame(now){
   if(dx||dy) move(dx,dy); else player.classList.remove('moving');
   updateNearPrompts();
   if(state.currentLevel===2) checkLevel2Collisions();
+  if(state.currentLevel===3) checkLevel3Interactions();
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
@@ -181,8 +191,19 @@ function updateNearPrompts(){
 }
 
 function interact(){
+  ensureAudio();
+
+  if(state.currentLevel===3){
+    if(!interactLevel3()){
+      l3Message.textContent='🗣️ Dekati titik musyawarah yang aktif lalu tekan E / Space / AKSI.';
+      playSfx('interact');
+    }
+    return;
+  }
+
   if(state.currentLevel===2){
     l2Message.textContent='🌳 Bergeraklah menuju nilai positif. Nilai akan otomatis terambil saat disentuh.';
+    playSfx('interact');
     return;
   }
 
@@ -351,6 +372,7 @@ function answerQuiz(btn,correct,q){
     btn.classList.add('correct');
     quizFeedback.textContent=q.correctText;
     quizFeedback.className='quiz-feedback good';
+    playSfx('correct');
     setTimeout(()=>{
       quizModal.classList.add('hidden');
       state.stage=q.nextStage;
@@ -361,6 +383,7 @@ function answerQuiz(btn,correct,q){
     btn.classList.add('wrong');
     quizFeedback.textContent='Belum tepat. Baca kembali situasi dan perhatikan nilai Pancasila yang paling relevan.';
     quizFeedback.className='quiz-feedback bad';
+    playSfx('wrong');
     setTimeout(()=>{
       buttons.forEach(b=>{b.disabled=false;b.classList.remove('wrong')});
       quizFeedback.textContent='Coba sekali lagi.';
@@ -475,6 +498,7 @@ function collectGoodValue(el){
   progressText.textContent=pct+'%';
 
   l2Message.textContent=`✅ ${el.dataset.value} ditemukan! (${count}/4)`;
+  playSfx('collect');
 
   if(count===4){
     setTimeout(completeLevel2,700);
@@ -486,6 +510,7 @@ function hitHazard(el){
   setTimeout(()=>el.classList.remove('hit'),400);
 
   l2Message.textContent=`⚠️ Hindari ${el.dataset.hazard}. Cari nilai positif di sekitarmu.`;
+  playSfx('wrong');
 
   // small pushback
   state.x = clamp(state.x - 2.3,2,94);
@@ -512,20 +537,316 @@ function completeLevel2(){
   }));
 
   level2CompleteModal.classList.remove('hidden');
+  playSfx('level');
 }
 
-goLevel3Btn.addEventListener('click',()=>{
+goLevel3Btn.addEventListener('click', startLevel3);
+
+function startLevel3(){
   level2CompleteModal.classList.add('hidden');
-  openDialogue(
-    '🗣️ Level 3 — Ruang Musyawarah',
-    'Level 3 akan berfokus pada memilih solusi dan melihat konsekuensi setiap keputusan. Pada versi berikutnya, area ini akan menjadi ruang musyawarah interaktif.'
-  );
+
+  state.currentLevel = 3;
+  state.level3Step = 0;
+  state.totalXp = 125;
+
+  gameArea.classList.remove('level2-active');
+  gameArea.classList.add('level3-active');
+  level2Scene.classList.add('hidden');
+  level3Scene.classList.remove('hidden');
+
   document.querySelector('.level-top span').textContent='LEVEL 3';
   document.querySelector('.level-top strong').textContent='Ruang Musyawarah • Pilih Solusinya';
   progressBar.style.width='0%';
   progressText.textContent='0%';
+  xpText.textContent='125 XP';
+
   missionTitle.textContent='Level 3 • Ruang Musyawarah';
-  missionText.textContent='Preview Level 3 terbuka. Gameplay Level 3 penuh akan dikembangkan pada tahap berikutnya.';
+  missionText.textContent='Selesaikan 3 tahap: dengarkan semua pihak, bandingkan alternatif, lalu putuskan bersama.';
+  l3DoneText.textContent='0';
+  l3Message.textContent='🗣️ Mulailah dari titik 1: Dengarkan Semua Pihak.';
+
+  document.querySelectorAll('.decision-point').forEach((el,i)=>{
+    el.classList.remove('completed');
+    el.classList.toggle('locked', i!==0);
+    const small=el.querySelector('small');
+    if(i===0) small.textContent='Dekati lalu E / AKSI';
+    if(i===1) small.textContent='Selesaikan tahap 1';
+    if(i===2) small.textContent='Selesaikan tahap 2';
+  });
+
+  state.x=22; state.y=66; updatePlayer();
+
+  localStorage.setItem('pancaquest_adventure_progress', JSON.stringify({
+    currentLevel:3,
+    level1Completed:true,
+    level2Completed:true,
+    level3Completed:false,
+    totalXp:125,
+    updated_at:new Date().toISOString()
+  }));
+
+  playSfx('level');
+}
+
+
+// =============================================================
+// AUDIO ENGINE — procedural (no external MP3)
+// =============================================================
+let audioCtx=null;
+let masterGain=null;
+let musicTimer=null;
+let musicStep=0;
+
+function ensureAudio(){
+  if(!state.audioEnabled) return;
+  if(!audioCtx){
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC) return;
+    audioCtx=new AC();
+    masterGain=audioCtx.createGain();
+    masterGain.gain.value=.16;
+    masterGain.connect(audioCtx.destination);
+  }
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  if(!state.audioStarted){
+    state.audioStarted=true;
+    startBackgroundMusic();
+    document.getElementById('soundBtn')?.classList.add('sound-active');
+  }
+}
+
+function tone(freq,duration=.12,type='sine',volume=.12,when=0){
+  if(!state.audioEnabled) return;
+  ensureAudio();
+  if(!audioCtx||!masterGain) return;
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+  osc.type=type; osc.frequency.value=freq;
+  gain.gain.setValueAtTime(volume,audioCtx.currentTime+when);
+  gain.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+when+duration);
+  osc.connect(gain); gain.connect(masterGain);
+  osc.start(audioCtx.currentTime+when);
+  osc.stop(audioCtx.currentTime+when+duration+.02);
+}
+
+function playSfx(name){
+  if(!state.audioEnabled) return;
+  ensureAudio();
+  if(name==='interact'){ tone(520,.08,'sine',.18);tone(690,.09,'sine',.14,.07); }
+  if(name==='correct'){ tone(523,.12,'triangle',.18);tone(659,.12,'triangle',.16,.11);tone(784,.18,'triangle',.15,.22); }
+  if(name==='wrong'){ tone(240,.12,'sawtooth',.12);tone(185,.2,'sawtooth',.1,.11); }
+  if(name==='collect'){ tone(660,.08,'square',.1);tone(880,.12,'square',.08,.08); }
+  if(name==='level'){ tone(392,.12,'triangle',.14);tone(523,.14,'triangle',.14,.12);tone(659,.18,'triangle',.13,.25); }
+}
+
+function startBackgroundMusic(){
+  if(musicTimer) return;
+  const pattern=[261.63,329.63,392.00,329.63,293.66,349.23,440.00,349.23];
+  musicTimer=setInterval(()=>{
+    if(!state.audioEnabled || !audioCtx) return;
+    const f=pattern[musicStep%pattern.length];
+    tone(f,.28,'triangle',.025);
+    if(musicStep%2===0) tone(f/2,.4,'sine',.018,.02);
+    musicStep++;
+  },420);
+}
+
+function stopBackgroundMusic(){
+  if(musicTimer){ clearInterval(musicTimer); musicTimer=null; }
+}
+
+['pointerdown','keydown','touchstart'].forEach(evt=>{
+  document.addEventListener(evt,()=>ensureAudio(),{once:true});
+});
+
+const originalOpenDialogue = openDialogue;
+openDialogue = function(name,text){
+  playSfx('interact');
+  originalOpenDialogue(name,text);
+};
+
+// =============================================================
+// LEVEL 3 — branching musyawarah challenges
+// =============================================================
+const LEVEL3_QUIZZES = {
+  1:{
+    badge:'🗣️ Tahap 1 • Mendengar',
+    title:'Dengarkan Semua Pihak',
+    caseText:'Kelompok A ingin menampilkan tari daerah. Kelompok B ingin menampilkan tarian populer modern. Apa langkah pertama yang paling tepat?',
+    options:[
+      ['Langsung melakukan voting agar cepat selesai.',false],
+      ['Mendengarkan alasan dan kebutuhan kedua kelompok terlebih dahulu.',true],
+      ['Ketua kelas memilih salah satu usulan.',false],
+      ['Membatalkan penampilan agar tidak terjadi perbedaan.',false]
+    ],
+    correctText:'✅ Tepat! Musyawarah dimulai dengan memberi ruang kepada semua pihak untuk menyampaikan alasan.'
+  },
+  2:{
+    badge:'⚖️ Tahap 2 • Evaluasi C5',
+    title:'Bandingkan Alternatif',
+    caseText:'Setelah mendengar kedua kelompok, kelas memiliki dua alternatif: (A) hanya tari daerah, atau (B) pertunjukan kolaborasi budaya lokal dan modern. Bagaimana cara mengevaluasinya?',
+    options:[
+      ['Pilih yang paling banyak disukai tanpa mempertimbangkan dampaknya.',false],
+      ['Bandingkan manfaat, risiko, keterlibatan semua anggota, dan kesesuaiannya dengan nilai Pancasila.',true],
+      ['Pilih usulan teman dekat agar hubungan tetap baik.',false],
+      ['Biarkan guru memutuskan semuanya.',false]
+    ],
+    correctText:'✅ Benar. Evaluasi berarti membandingkan alternatif dengan kriteria yang jelas, bukan sekadar selera.'
+  },
+  3:{
+    badge:'🤝 Tahap 3 • Keputusan',
+    title:'Putuskan Bersama',
+    caseText:'Hasil diskusi menunjukkan pertunjukan kolaborasi dapat melibatkan lebih banyak siswa dan tetap menghargai budaya lokal. Keputusan apa yang paling sesuai?',
+    options:[
+      ['Memilih kolaborasi melalui kesepakatan dan membagi peran secara adil.',true],
+      ['Tetap memilih usulan kelompok mayoritas saja.',false],
+      ['Menunda keputusan sampai semua siswa memiliki selera yang sama.',false],
+      ['Ketua kelas mengambil alih seluruh keputusan.',false]
+    ],
+    correctText:'✅ Tepat! Keputusan bersama perlu menjaga persatuan, partisipasi, dan pembagian peran yang adil.'
+  }
+};
+
+function nearDecision(el,threshold=90){ return rectDistanceBetween(player,el)<threshold; }
+
+function checkLevel3Interactions(){
+  if(state.currentLevel!==3) return;
+  const activeStep=state.level3Step+1;
+  const el=document.querySelector(`.decision-point[data-decision="${activeStep}"]`);
+  if(!el) return;
+  if(nearDecision(el,95)){
+    l3Message.textContent=`✨ Titik ${activeStep} siap. Tekan E / Space / AKSI.`;
+  }else{
+    l3Message.textContent=`🗣️ Pergi ke titik ${activeStep}: ${el.querySelector('b').textContent}.`;
+  }
+}
+
+function interactLevel3(){
+  const step=state.level3Step+1;
+  const el=document.querySelector(`.decision-point[data-decision="${step}"]`);
+  if(!el || el.classList.contains('locked')) return false;
+  if(nearDecision(el,105)){
+    openLevel3Quiz(step);
+    return true;
+  }
+  return false;
+}
+
+function openLevel3Quiz(step){
+  const q=LEVEL3_QUIZZES[step];
+  quizBadge.textContent=q.badge;
+  quizTitle.textContent=q.title;
+  quizCase.textContent=q.caseText;
+  quizFeedback.textContent='';
+  quizFeedback.className='quiz-feedback';
+  quizOptions.innerHTML='';
+
+  q.options.forEach(([label,correct],i)=>{
+    const btn=document.createElement('button');
+    btn.className='quiz-option';
+    btn.textContent=String.fromCharCode(65+i)+'. '+label;
+    btn.addEventListener('click',()=>{
+      const buttons=[...quizOptions.querySelectorAll('.quiz-option')];
+      buttons.forEach(b=>b.disabled=true);
+      if(correct){
+        btn.classList.add('correct');
+        quizFeedback.textContent=q.correctText;
+        quizFeedback.className='quiz-feedback good';
+        playSfx('correct');
+        setTimeout(()=>completeLevel3Step(step),1000);
+      }else{
+        btn.classList.add('wrong');
+        quizFeedback.textContent='Belum paling tepat. Perhatikan prinsip musyawarah, partisipasi, dan penghargaan terhadap semua pihak.';
+        quizFeedback.className='quiz-feedback bad';
+        playSfx('wrong');
+        setTimeout(()=>{
+          buttons.forEach(b=>{b.disabled=false;b.classList.remove('wrong')});
+          quizFeedback.textContent='Coba lagi dengan mempertimbangkan dampak setiap pilihan.';
+        },950);
+      }
+    });
+    quizOptions.appendChild(btn);
+  });
+  quizModal.classList.remove('hidden');
+  playSfx('interact');
+}
+
+function completeLevel3Step(step){
+  quizModal.classList.add('hidden');
+  const current=document.querySelector(`.decision-point[data-decision="${step}"]`);
+  current?.classList.add('completed');
+  current?.classList.remove('locked');
+  if(current?.querySelector('small')) current.querySelector('small').textContent='✅ Selesai';
+
+  state.level3Step=step;
+  l3DoneText.textContent=String(step);
+
+  const pct=Math.round(step/3*100);
+  progressBar.style.width=pct+'%';
+  progressText.textContent=pct+'%';
+
+  state.totalXp=125 + Math.round(step*(25/3));
+  xpText.textContent=state.totalXp+' XP';
+
+  const next=document.querySelector(`.decision-point[data-decision="${step+1}"]`);
+  if(next){
+    next.classList.remove('locked');
+    next.querySelector('small').textContent='Dekati lalu E / AKSI';
+    l3Message.textContent=`✅ Tahap ${step} selesai. Lanjutkan ke titik ${step+1}.`;
+  }else{
+    state.totalXp=150;
+    xpText.textContent='150 XP';
+    progressBar.style.width='100%';
+    progressText.textContent='100%';
+    setTimeout(completeLevel3,650);
+  }
+}
+
+function completeLevel3(){
+  missionTitle.textContent='Level 3 Selesai!';
+  missionText.textContent='Kamu berhasil menyelesaikan proses musyawarah secara bertahap.';
+  l3TotalXp.textContent='150 XP';
+
+  localStorage.setItem('pancaquest_adventure_progress', JSON.stringify({
+    currentLevel:4,
+    level1Completed:true,
+    level2Completed:true,
+    level3Completed:true,
+    totalXp:150,
+    updated_at:new Date().toISOString()
+  }));
+  level3CompleteModal.classList.remove('hidden');
+  playSfx('level');
+}
+
+goLevel4Btn.addEventListener('click',()=>{
+  level3CompleteModal.classList.add('hidden');
+  openDialogue(
+    '🛠️ Level 4 — Kelas Aksi',
+    'Level 4 akan meminta kamu merancang tindakan nyata: tindakan, pelaksana, waktu, dan indikator keberhasilan. Gameplay penuh dapat kita lanjutkan pada versi berikutnya.'
+  );
+  document.querySelector('.level-top span').textContent='LEVEL 4';
+  document.querySelector('.level-top strong').textContent='Kelas Aksi • Rancang Tindakan Nyata';
+  progressBar.style.width='0%';
+  progressText.textContent='0%';
+  missionTitle.textContent='Level 4 • Kelas Aksi';
+  missionText.textContent='Preview Level 4 terbuka.';
+});
+
+const soundBtn=document.getElementById('soundBtn');
+soundBtn.addEventListener('click',e=>{
+  state.audioEnabled=!state.audioEnabled;
+  if(state.audioEnabled){
+    e.currentTarget.textContent='🔊';
+    ensureAudio();
+    startBackgroundMusic();
+    e.currentTarget.classList.add('sound-active');
+    playSfx('interact');
+  }else{
+    e.currentTarget.textContent='🔇';
+    stopBackgroundMusic();
+    e.currentTarget.classList.remove('sound-active');
+  }
 });
 
 closeQuizBtn.addEventListener('click',()=>quizModal.classList.add('hidden'));
@@ -574,9 +895,6 @@ joystick.addEventListener('pointercancel',joyEnd);
 
 document.getElementById('guideBtn').addEventListener('click',()=>{
   alert('Laptop: WASD / panah untuk bergerak, E atau Space untuk interaksi.\\nHP: gunakan joystick analog dan tombol AKSI.\\nIkuti tanda ! dan teks Misi Saat Ini.');
-});
-document.getElementById('soundBtn').addEventListener('click',e=>{
-  e.currentTarget.textContent = e.currentTarget.textContent==='🔊' ? '🔇' : '🔊';
 });
 document.getElementById('miniExpand').addEventListener('click',()=>openDialogue('Peta Sekolah','Urutan Level 1: Nadia → Perpustakaan → Pak Budi → Taman → Sekolah (Final Mission).'));
 
