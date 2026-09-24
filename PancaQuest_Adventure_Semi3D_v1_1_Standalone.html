@@ -1,0 +1,878 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0a2a7a" />
+  <title>PancaQuest Adventure — PancaPath</title>
+  <style>
+:root{
+  --blue:#0b2f8d;
+  --blue2:#183f9f;
+  --gold:#ffcc32;
+  --ink:#0d1b3b;
+  --white:#ffffff;
+  --grass:#7fd25f;
+  --grass2:#58b844;
+  --road:#dfc899;
+  --shadow:0 18px 40px rgba(17,44,98,.22);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#07152f;color:#fff;overflow:hidden}
+button{font:inherit}
+.app-shell{height:100vh;display:grid;grid-template-rows:72px 1fr;background:linear-gradient(#0c2e82,#06172f)}
+.topbar{
+  display:grid;grid-template-columns:1fr minmax(360px,620px) 1fr;align-items:center;gap:18px;
+  padding:8px 20px;background:linear-gradient(180deg,#0c2f8e,#082267);box-shadow:0 4px 20px rgba(0,0,0,.25);z-index:50
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-mark{width:46px;height:46px;border-radius:14px;background:linear-gradient(145deg,#ffe47b,#ffc107);display:grid;place-items:center;font-size:26px;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.brand h1{font-size:17px;margin:0;font-weight:900;white-space:nowrap}
+.brand h1 span{color:var(--gold)}
+.brand p{margin:2px 0 0;color:#c9d8ff;font-size:11px}
+.level-card{background:rgba(4,18,54,.65);border:1px solid rgba(255,255,255,.13);border-radius:22px;padding:8px 18px;box-shadow:inset 0 1px rgba(255,255,255,.08)}
+.level-top{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.level-top span{font-size:11px;font-weight:900;color:var(--gold)}
+.level-top strong{font-size:13px;text-align:center}
+.level-top b{font-size:12px}
+.progress-track{height:7px;background:rgba(255,255,255,.18);border-radius:99px;overflow:hidden;margin-top:6px}
+.progress-track>div{height:100%;width:25%;background:linear-gradient(90deg,#2bd66f,#42e3bb);border-radius:inherit;transition:.4s}
+.top-actions{display:flex;justify-content:flex-end;gap:8px}
+.icon-btn{width:40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.09);color:white;cursor:pointer;font-size:17px}
+.icon-btn:hover{background:rgba(255,255,255,.16)}
+
+.game-area{
+  position:relative;overflow:hidden;
+  background:
+    radial-gradient(circle at 12% 8%,rgba(255,255,255,.18) 0 2px,transparent 3px),
+    radial-gradient(circle at 83% 20%,rgba(255,255,255,.16) 0 2px,transparent 3px),
+    linear-gradient(180deg,#8cdb6d 0 70%,#7ccf5c 70%);
+  background-size:160px 160px,190px 190px,auto;
+}
+.game-area:after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.08),transparent 30%,rgba(5,32,62,.06));
+}
+.sky-glow{position:absolute;inset:0 auto auto 0;width:100%;height:160px;background:linear-gradient(180deg,rgba(255,255,255,.12),transparent);pointer-events:none}
+.hud{position:absolute;top:14px;z-index:30;background:rgba(7,31,72,.82);border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 30px rgba(0,0,0,.22);backdrop-filter:blur(8px)}
+.hearts{left:16px;border-radius:16px;padding:9px 13px;display:flex;gap:5px}
+.xp{right:16px;border-radius:16px;padding:10px 16px;color:#ffe375}
+
+.path-vertical{position:absolute;left:46%;top:0;width:10%;height:100%;background:linear-gradient(90deg,#d9c399,#edd9b6,#d6be8d);box-shadow:inset 12px 0 18px rgba(132,91,37,.07),inset -12px 0 18px rgba(132,91,37,.07)}
+.path-horizontal{position:absolute;left:0;top:59%;width:100%;height:14%;background:linear-gradient(#d5bd8f,#ead4aa,#d7be8d)}
+.tactile{position:absolute;background:#eabf38;opacity:.7;z-index:3}
+.tactile.vertical{left:50.3%;top:0;width:1.1%;height:100%}
+.tactile.horizontal{left:0;top:65.2%;width:100%;height:1.2%}
+
+.scene-card{position:absolute;z-index:5;filter:drop-shadow(0 14px 16px rgba(22,65,30,.15))}
+.school{left:33%;top:8%;width:39%;height:29%;background:linear-gradient(#ffe0a9,#f2bd71);border:2px solid #c48b4e;border-radius:18px}
+.roof{position:absolute;left:-5%;right:-5%;top:-19%;height:35%;background:linear-gradient(145deg,#e5583b,#b93426);clip-path:polygon(12% 100%,25% 28%,50% 0,74% 28%,88% 100%)}
+.school-logo{position:absolute;left:50%;top:-9%;transform:translateX(-50%);width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#184fa4;color:#fff;border:4px solid #f7d16e;font-size:22px}
+.school-title{position:absolute;left:50%;top:18%;transform:translateX(-50%);background:#fff1d2;color:#8d4a1e;font-weight:900;padding:4px 22px;border-radius:10px;box-shadow:0 4px 10px rgba(123,69,24,.15)}
+.windows{position:absolute;left:12%;right:12%;top:40%;display:flex;justify-content:space-between}
+.windows i{width:14%;height:55px;background:linear-gradient(#7dc4ff,#4c94d4);border:5px solid #f7ead2;box-shadow:inset 0 8px 12px rgba(255,255,255,.22)}
+.door{position:absolute;left:45%;bottom:0;width:10%;height:34%;background:linear-gradient(90deg,#9a6035,#74401f);border-radius:5px 5px 0 0}
+.banner{position:absolute;top:31%;width:80px;padding:7px;background:#10479c;color:#fff;font-size:9px;line-height:1.25;text-align:center;border-radius:3px;box-shadow:0 4px 10px rgba(0,0,0,.15)}
+.banner.left{left:3%}.banner.right{right:3%}
+
+.library{left:7%;top:33%;width:18%;height:17%;background:linear-gradient(#e9f2ff,#cbdcf2);border:2px solid #6c8bae;border-radius:14px}
+.library-sign{position:absolute;left:8%;right:8%;top:12%;padding:5px 8px;text-align:center;border-radius:8px;background:#fff;color:#233d73;font-weight:900;font-size:12px}
+.shelves{position:absolute;left:12%;right:12%;bottom:14%;display:flex;gap:6px}
+.shelves span{flex:1;height:50px;border-radius:4px;background:repeating-linear-gradient(90deg,#85592e 0 7px,#d95d4c 7px 10px,#4c78b9 10px 13px,#8c642f 13px 19px)}
+
+.park{right:6%;top:31%;width:17%;height:20%;background:linear-gradient(#c9f3d7,#aee5c3);border:2px solid #4b9c68;border-radius:16px}
+.park-sign{position:absolute;left:12%;right:12%;bottom:12%;padding:7px;text-align:center;background:#fff;color:#18513b;border-radius:9px;font-weight:900;font-size:12px}
+.fountain{position:absolute;left:50%;top:10%;transform:translateX(-50%);width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,#8fe5ff 0 28%,#338fbd 30% 46%,#d8d8d8 48% 65%,#b1b1b1 66%);box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.water{position:absolute;left:50%;top:10%;width:16px;height:35px;transform:translateX(-50%);border-radius:50%;background:linear-gradient(#d8fbff,#53c4ef);filter:drop-shadow(0 4px 3px rgba(42,144,192,.2))}
+
+.tree{position:absolute;width:62px;height:86px;z-index:4}
+.tree:before{content:"";position:absolute;left:25px;bottom:0;width:13px;height:36px;background:#8e5b35;border-radius:4px}
+.tree:after{content:"";position:absolute;left:5px;top:0;width:54px;height:54px;border-radius:50%;background:radial-gradient(circle at 33% 30%,#61cb72 0 23%,#2fa950 24% 55%,#228c42 56%);box-shadow:-18px 12px 0 -7px #37ad53,18px 13px 0 -8px #279143}
+.t1{left:17%;top:10%}.t2{right:14%;top:9%}.t3{left:12%;bottom:8%}.t4{right:18%;bottom:10%}.t5{right:4%;top:45%}
+
+.lamp{position:absolute;width:10px;height:80px;background:#2d3647;z-index:7;border-radius:4px}
+.lamp:after{content:"";position:absolute;left:-10px;top:-10px;width:30px;height:25px;border-radius:8px;background:radial-gradient(circle,#fffbd3 0 25%,#ffd96a 30% 46%,#35405d 48%);box-shadow:0 0 20px #ffe28a}
+.l1{left:29%;bottom:16%}.l2{right:26%;bottom:9%}
+.bench{position:absolute;right:11%;top:22%;width:80px;height:28px;border-bottom:9px solid #7d4d2e;border-top:8px solid #9a6538;z-index:6;box-shadow:0 12px 0 -6px #633b25}
+.value-sign{position:absolute;left:5%;bottom:14%;z-index:8;display:grid;gap:3px;transform:rotate(-2deg)}
+.value-sign span{background:#704728;color:#fff;padding:4px 12px;border-radius:3px;font-size:11px;font-weight:800;box-shadow:0 3px 6px rgba(0,0,0,.18)}
+
+.character{position:relative;width:58px;height:105px;filter:drop-shadow(0 10px 5px rgba(0,0,0,.16))}
+.char-shadow{position:absolute;left:8px;bottom:-2px;width:42px;height:12px;background:rgba(0,0,0,.22);border-radius:50%;filter:blur(2px)}
+.head{position:absolute;left:11px;top:0;width:38px;height:42px;z-index:6}
+.face{position:absolute;left:4px;top:8px;width:31px;height:31px;border-radius:46% 46% 48% 48%;background:radial-gradient(circle at 42% 28%,#fff4e8 0 20%,#f6c9a5 45% 100%);box-shadow:inset -3px -3px 5px rgba(157,92,53,.15)}
+.hair.back{position:absolute;inset:1px 1px 0;background:linear-gradient(145deg,#3b271f,#16110f);border-radius:55% 55% 40% 40%}
+.hair.front{position:absolute;left:1px;right:1px;top:0;height:17px;background:linear-gradient(#3a261e,#17110f);border-radius:60% 58% 35% 24%;clip-path:polygon(0 0,100% 0,100% 58%,78% 40%,68% 82%,54% 48%,42% 75%,27% 42%,14% 70%,0 50%)}
+.eye{position:absolute;top:11px;width:3px;height:5px;background:#182030;border-radius:50%;animation:blink 4.6s infinite}
+.e1{left:8px}.e2{right:8px}
+.mouth{position:absolute;left:13px;top:21px;width:7px;height:4px;border-bottom:2px solid #a5483d;border-radius:0 0 10px 10px}
+.mouth.smile{width:8px;height:5px}
+.blush{position:absolute;top:18px;width:5px;height:2px;border-radius:50%;background:#ee8d8d;opacity:.55}.b1{left:3px}.b2{right:3px}
+@keyframes blink{0%,46%,48%,100%{transform:scaleY(1)}47%{transform:scaleY(.08)}}
+
+.body{position:absolute;left:10px;top:38px;width:40px;height:61px}
+.uniform:before{content:"";position:absolute;left:6px;top:0;width:28px;height:38px;border-radius:7px 7px 10px 10px;background:linear-gradient(145deg,#fff,#e8f0f8);box-shadow:inset -5px -3px 8px rgba(36,76,121,.08)}
+.uniform:after{content:"";position:absolute;left:7px;top:30px;width:26px;height:16px;background:linear-gradient(#1d4a8f,#163671);border-radius:3px 3px 8px 8px}
+.tie{position:absolute;left:18px;top:4px;width:5px;height:18px;background:#e44946;clip-path:polygon(0 0,100% 0,78% 100%,50% 82%,22% 100%) ;z-index:3}
+.arm{position:absolute;top:7px;width:8px;height:32px;background:linear-gradient(#f8d3b6,#d99a72);border-radius:7px;z-index:1;transform-origin:50% 4px}
+.a1{left:0;transform:rotate(8deg)}.a2{right:0;transform:rotate(-8deg)}
+.wave{animation:wave 1.2s ease-in-out infinite alternate}
+@keyframes wave{to{transform:rotate(-60deg) translateY(-3px)}}
+.leg{position:absolute;bottom:0;width:10px;height:26px;background:linear-gradient(#223f71,#102d5b);border-radius:4px}
+.g1{left:9px}.g2{right:9px}
+.backpack{position:absolute;left:1px;top:10px;width:11px;height:25px;border-radius:6px;background:linear-gradient(#163d86,#0d2760);z-index:0}
+
+.girl .hair.back{inset:0 -3px -5px;background:linear-gradient(#3b201d,#1c1211);border-radius:58% 58% 35% 35%}
+.girl .uniform:after{height:19px;bottom:0;top:28px;background:linear-gradient(#253f7e,#192d65)}
+.teacher .uniform:before{background:linear-gradient(#ead0a8,#bd9363)}
+.teacher .uniform:after{background:linear-gradient(#4d382d,#2e211c)}
+.glasses{position:absolute;left:4px;top:8px;width:24px;height:8px;border-top:2px solid #26334a}
+.glasses:before,.glasses:after{content:"";position:absolute;top:-3px;width:9px;height:8px;border:2px solid #26334a;border-radius:50%}
+.glasses:before{left:0}.glasses:after{right:0}
+
+.player{position:absolute;left:47%;top:69%;z-index:20;width:60px;height:110px;transition:filter .18s}
+.player.moving .character{animation:walkBob .32s ease-in-out infinite alternate}
+.player.moving .g1{animation:legWalk .32s ease-in-out infinite alternate}
+.player.moving .g2{animation:legWalk .32s ease-in-out infinite alternate-reverse}
+@keyframes walkBob{to{transform:translateY(-3px)}}
+@keyframes legWalk{to{transform:translateY(-4px) rotate(7deg)}}
+.interaction-ring{position:absolute;left:1px;bottom:-7px;width:58px;height:19px;border:3px solid rgba(255,234,109,.85);border-radius:50%;box-shadow:0 0 18px #ffe75c;animation:ringPulse 1.2s ease-in-out infinite alternate}
+@keyframes ringPulse{to{transform:scale(1.08);opacity:.6}}
+
+.npc{position:absolute;z-index:18}
+.npc-nadia{right:31%;top:56%}.npc-teacher{right:17%;bottom:11%}
+.name-tag{position:absolute;left:50%;top:-25px;transform:translateX(-50%);padding:4px 9px;border-radius:8px;background:rgba(18,39,78,.88);font-size:11px;font-weight:900;white-space:nowrap}
+.quest-mark{position:absolute;left:50%;top:-58px;transform:translateX(-50%);font-size:30px;font-weight:900;color:#ffcc27;text-shadow:0 2px 0 #ad6e00,0 0 12px #ffe799;animation:bounce 1s ease-in-out infinite alternate}
+@keyframes bounce{to{transform:translate(-50%,-8px)}}
+.talk-bubble{position:absolute;left:50%;top:-47px;transform:translateX(-50%);background:#fff;color:#27304b;border-radius:18px;padding:7px 12px;font-weight:900}
+
+.dialogue-card{
+  position:absolute;right:17%;top:49%;z-index:40;width:min(430px,42vw);display:flex;gap:12px;align-items:flex-start;
+  padding:15px 17px;background:rgba(255,255,255,.96);color:#1b2a4b;border-radius:20px;
+  border:3px solid #d9e7ff;box-shadow:0 18px 30px rgba(6,34,78,.2)
+}
+.dialogue-card:after{content:"";position:absolute;left:-18px;bottom:22px;border:10px solid transparent;border-right-color:#fff}
+.dialogue-avatar{font-size:38px}
+.dialogue-content strong{display:block;color:#4b5ccc;margin-bottom:3px}
+.dialogue-content p{margin:0 0 8px;font-size:13px;line-height:1.45}
+.dialogue-content button{background:#2457bd;color:#fff;border:0;border-radius:9px;padding:7px 12px;font-weight:800;cursor:pointer}
+
+.mission-card{
+  position:absolute;left:18px;bottom:18px;z-index:35;width:330px;display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;
+  padding:13px 14px;background:linear-gradient(145deg,rgba(20,57,141,.96),rgba(9,34,96,.96));border:2px solid #4b73db;border-radius:18px;box-shadow:var(--shadow)
+}
+.mission-icon{font-size:27px}.mission-card small{display:block;color:#ffd75e;font-weight:900}.mission-card strong{display:block;font-size:13px}.mission-card p{margin:3px 0 0;font-size:11px;color:#dbe6ff}
+.mission-card button{width:40px;height:40px;border:0;border-radius:50%;background:#2b5ac6;color:#fff;font-size:22px;cursor:pointer}
+
+.mini-map{position:absolute;right:18px;bottom:18px;z-index:35;width:220px;padding:9px;background:rgba(15,47,116,.95);border:2px solid #446fdb;border-radius:18px;box-shadow:var(--shadow)}
+.mini-head{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:12px;margin-bottom:7px}.mini-head button{border:0;background:rgba(255,255,255,.12);color:#fff;border-radius:6px;cursor:pointer}
+.mini-world{position:relative;height:130px;border-radius:12px;background:linear-gradient(90deg,#76c85f 0 42%,#dcc69b 42% 58%,#76c85f 58%);overflow:hidden}
+.mini-world:after{content:"";position:absolute;left:0;right:0;top:57%;height:18%;background:#d7be91}
+.mini-school,.mini-library,.mini-park,.mini-player{position:absolute;z-index:2}
+.mini-school{left:44%;top:9%;font-size:28px}.mini-library{left:15%;top:45%}.mini-park{right:14%;top:42%}.mini-player{left:49%;top:70%;color:#1f62ff;font-size:18px;text-shadow:0 0 8px #fff}
+
+.desktop-hint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:32;display:flex;gap:12px;padding:8px 12px;border-radius:12px;background:rgba(9,28,69,.72);font-size:10px;color:#d7e3ff;backdrop-filter:blur(6px)}
+kbd{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-right:2px;padding:0 4px;border-radius:5px;background:#eef4ff;color:#102653;font-weight:900;border-bottom:2px solid #a9b8d7}
+
+.mobile-controls{position:absolute;left:0;right:0;bottom:18px;z-index:60;display:none;justify-content:space-between;align-items:flex-end;padding:0 24px;pointer-events:none}
+.joystick{width:116px;height:116px;border-radius:50%;background:rgba(7,28,70,.38);border:2px solid rgba(255,255,255,.5);box-shadow:inset 0 0 20px rgba(255,255,255,.15);pointer-events:auto;touch-action:none}
+.joystick-knob{position:absolute;width:54px;height:54px;border-radius:50%;background:linear-gradient(#fff,#cad8ee);box-shadow:0 8px 16px rgba(0,0,0,.25);transform:translate(30px,30px)}
+.action-btn{width:88px;height:88px;border-radius:50%;border:4px solid rgba(255,255,255,.6);background:linear-gradient(#3268d2,#183c92);color:white;font-size:29px;box-shadow:0 12px 25px rgba(0,0,0,.25);pointer-events:auto}
+.action-btn small{display:block;font-size:9px;font-weight:900}
+
+.modal{position:fixed;inset:0;z-index:100;display:grid;place-items:center}
+.modal-backdrop{position:absolute;inset:0;background:rgba(2,8,25,.68);backdrop-filter:blur(5px)}
+.modal-card{position:relative;z-index:2;width:min(360px,90vw);padding:24px;border-radius:22px;background:#0e2e75;border:1px solid rgba(255,255,255,.18);box-shadow:0 30px 80px rgba(0,0,0,.35);text-align:center}
+.modal-card button{display:block;width:100%;margin:8px 0;padding:12px;border-radius:11px;border:1px solid rgba(255,255,255,.13);background:#2359bd;color:white;font-weight:800;cursor:pointer}
+.hidden{display:none!important}
+
+@media (max-width:900px){
+  .topbar{grid-template-columns:1fr auto;gap:10px;height:64px;padding:6px 10px}
+  .level-card{position:absolute;left:50%;top:68px;transform:translateX(-50%);z-index:80;width:min(80vw,520px)}
+  .brand p{display:none}.brand h1{font-size:14px}.top-actions{grid-column:2}
+  .school{left:28%;width:49%}.library{left:4%;width:21%}.park{right:3%;width:20%}
+  .dialogue-card{right:7%;top:48%;width:54vw}
+  .desktop-hint{display:none}.mobile-controls{display:flex}
+  .mission-card{width:280px;bottom:145px}.mini-map{display:none}
+}
+@media (max-width:620px){
+  html,body{overflow:auto}.app-shell{min-height:100vh;height:auto;grid-template-rows:62px 720px}
+  .game-area{min-height:720px}
+  .brand-mark{width:38px;height:38px}.brand h1{font-size:12px}
+  .top-actions .icon-btn{width:34px;height:34px}
+  .school{left:22%;top:10%;width:60%;height:24%}
+  .library{left:3%;top:37%;width:27%}.park{right:2%;top:37%;width:26%}
+  .npc-nadia{right:22%;top:54%}.npc-teacher{right:10%;bottom:13%}
+  .dialogue-card{left:6%;right:6%;top:auto;bottom:235px;width:auto}
+  .mission-card{left:10px;right:10px;bottom:130px;width:auto}
+  .hearts{top:62px}.xp{top:62px}
+}
+
+
+/* ===== v1.1 interactive quest locations ===== */
+.location-quest{
+  position:absolute;left:50%;top:-38px;transform:translateX(-50%);
+  z-index:40;font-size:28px;font-weight:1000;color:#ffd43b;
+  text-shadow:0 2px 0 #8b5b00,0 0 14px rgba(255,223,69,.95);
+  animation:locBounce .85s ease-in-out infinite alternate;
+}
+@keyframes locBounce{to{transform:translate(-50%,-7px) scale(1.08)}}
+
+.quiz-card{
+  position:relative;z-index:2;width:min(620px,92vw);padding:24px;border-radius:24px;
+  background:linear-gradient(160deg,#ffffff,#eef5ff);
+  color:#152344;border:2px solid #cfe0ff;box-shadow:0 30px 90px rgba(0,0,0,.36)
+}
+.quiz-head{display:flex;justify-content:space-between;align-items:center}
+.quiz-head span{font-size:.75rem;font-weight:900;color:#1d4ed8;background:#dbeafe;padding:7px 10px;border-radius:999px}
+.quiz-close{width:36px;height:36px;border-radius:50%;border:0;background:#e8eef8;color:#24324d;font-size:22px;cursor:pointer}
+.quiz-card h2{margin:12px 0 8px;font-size:1.35rem}
+.quiz-case{line-height:1.55;color:#475467}
+.quiz-options{display:grid;gap:9px;margin-top:16px}
+.quiz-option{
+  width:100%;text-align:left;border:1px solid #d6e0ef;border-radius:13px;background:#fff;
+  padding:12px 14px;color:#1f2f50;font-weight:750;cursor:pointer;transition:.18s
+}
+.quiz-option:hover{transform:translateX(4px);border-color:#7ba7ff;background:#f7fbff}
+.quiz-option.correct{border-color:#22c55e;background:#ecfdf3;color:#166534}
+.quiz-option.wrong{border-color:#ef4444;background:#fff1f2;color:#991b1b}
+.quiz-option:disabled{cursor:default;opacity:.96}
+.quiz-feedback{min-height:28px;margin-top:13px;font-weight:850}
+.quiz-feedback.good{color:#15803d}.quiz-feedback.bad{color:#b91c1c}
+</style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">📘</div>
+        <div>
+          <h1>PancaQuest <span>Adventure</span></h1>
+          <p>PancaPath • Kepribadian Bangsa</p>
+        </div>
+      </div>
+
+      <div class="level-card">
+        <div class="level-top">
+          <span>LEVEL 1</span>
+          <strong>Sekolah • Kenali Nilainya</strong>
+          <b id="progressText">25%</b>
+        </div>
+        <div class="progress-track"><div id="progressBar"></div></div>
+      </div>
+
+      <div class="top-actions">
+        <button id="soundBtn" class="icon-btn" aria-label="Suara">🔊</button>
+        <button id="fullscreenBtn" class="icon-btn" aria-label="Layar penuh">⛶</button>
+        <button id="pauseBtn" class="icon-btn" aria-label="Jeda">Ⅱ</button>
+      </div>
+    </header>
+
+    <main id="gameArea" class="game-area" aria-label="Area permainan PancaQuest Adventure">
+      <div class="sky-glow"></div>
+
+      <!-- HUD -->
+      <div class="hud hearts" aria-label="Nyawa">
+        <span>❤️</span><span>❤️</span><span>❤️</span>
+      </div>
+      <div class="hud xp">⭐ <strong id="xpText">0 XP</strong></div>
+
+      <!-- SCHOOL -->
+      <section class="school scene-card" id="schoolArea">
+        <div id="schoolQuestMark" class="location-quest hidden">!</div>
+        <div class="roof"></div>
+        <div class="school-logo">✦</div>
+        <div class="school-title">SEKOLAH</div>
+        <div class="banner left">BERPRESTASI<br>BERKARAKTER<br>UNTUK INDONESIA</div>
+        <div class="banner right">PANCASILA<br>DALAM AKSI<br>SEHARI-HARI</div>
+        <div class="windows">
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="door"></div>
+      </section>
+
+      <!-- LIBRARY -->
+      <section class="library scene-card" id="libraryArea">
+        <div id="libraryQuestMark" class="location-quest hidden">!</div>
+        <div class="mini-roof"></div>
+        <div class="library-sign">📖 PERPUSTAKAAN</div>
+        <div class="shelves">
+          <span></span><span></span><span></span>
+        </div>
+      </section>
+
+      <!-- PARK -->
+      <section class="park scene-card" id="parkArea">
+        <div id="parkQuestMark" class="location-quest hidden">!</div>
+        <div class="fountain"><div class="water"></div></div>
+        <div class="park-sign">🌳 TAMAN</div>
+      </section>
+
+      <!-- DECORATION -->
+      <div class="tree t1"></div><div class="tree t2"></div><div class="tree t3"></div>
+      <div class="tree t4"></div><div class="tree t5"></div>
+      <div class="lamp l1"></div><div class="lamp l2"></div>
+      <div class="bench"></div>
+      <div class="value-sign">
+        <span>Disiplin</span><span>Toleransi</span><span>Gotong Royong</span><span>Integritas</span>
+      </div>
+
+      <!-- PATH -->
+      <div class="path-vertical"></div>
+      <div class="path-horizontal"></div>
+      <div class="tactile vertical"></div>
+      <div class="tactile horizontal"></div>
+
+      <!-- NPC NADIA -->
+      <div class="npc npc-nadia" data-npc="nadia">
+        <div class="name-tag">Nadia</div>
+        <div class="character semi3d girl">
+          <div class="char-shadow"></div>
+          <div class="head">
+            <div class="hair back"></div>
+            <div class="face">
+              <span class="eye e1"></span><span class="eye e2"></span>
+              <span class="mouth"></span>
+              <span class="blush b1"></span><span class="blush b2"></span>
+            </div>
+            <div class="hair front"></div>
+          </div>
+          <div class="body uniform">
+            <div class="tie"></div>
+            <div class="arm a1"></div><div class="arm a2 wave"></div>
+            <div class="leg g1"></div><div class="leg g2"></div>
+          </div>
+        </div>
+        <div class="quest-mark">!</div>
+      </div>
+
+      <!-- NPC TEACHER -->
+      <div class="npc npc-teacher" data-npc="teacher">
+        <div class="name-tag">Pak Budi</div>
+        <div class="character semi3d teacher">
+          <div class="char-shadow"></div>
+          <div class="head">
+            <div class="hair back"></div>
+            <div class="face">
+              <span class="eye e1"></span><span class="eye e2"></span>
+              <span class="mouth smile"></span>
+              <span class="glasses"></span>
+            </div>
+            <div class="hair front"></div>
+          </div>
+          <div class="body uniform">
+            <div class="arm a1"></div><div class="arm a2"></div>
+            <div class="leg g1"></div><div class="leg g2"></div>
+          </div>
+        </div>
+        <div class="talk-bubble">•••</div>
+      </div>
+
+      <!-- PLAYER -->
+      <div id="player" class="player" aria-label="Karakter pemain">
+        <div class="interaction-ring"></div>
+        <div class="character semi3d boy player-char">
+          <div class="char-shadow"></div>
+          <div class="head">
+            <div class="hair back"></div>
+            <div class="face">
+              <span class="eye e1"></span><span class="eye e2"></span>
+              <span class="mouth"></span>
+              <span class="blush b1"></span><span class="blush b2"></span>
+            </div>
+            <div class="hair front"></div>
+          </div>
+          <div class="body uniform">
+            <div class="backpack"></div>
+            <div class="tie"></div>
+            <div class="arm a1"></div><div class="arm a2"></div>
+            <div class="leg g1"></div><div class="leg g2"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DIALOGUE -->
+      <aside id="dialogue" class="dialogue-card hidden" aria-live="polite">
+        <div class="dialogue-avatar">👧</div>
+        <div class="dialogue-content">
+          <strong id="dialogueName">Nadia</strong>
+          <p id="dialogueText">Ayo, kita jelajahi sekolah ini! Ada banyak nilai Pancasila yang bisa kamu temukan.</p>
+          <button id="nextDialogue">Lanjut ▶</button>
+        </div>
+      </aside>
+
+      <!-- CURRENT MISSION -->
+      <aside class="mission-card">
+        <div class="mission-icon">📋</div>
+        <div>
+          <small>MISI SAAT INI</small>
+          <strong id="missionTitle">Kenali nilai Pancasila di sekolah</strong>
+          <p id="missionText">Dekati Nadia lalu tekan tombol aksi untuk memulai misi.</p>
+        </div>
+        <button id="missionBtn">➜</button>
+      </aside>
+
+      <!-- MINI MAP -->
+      <aside class="mini-map">
+        <div class="mini-head">Peta Sekolah <button id="miniExpand">⛶</button></div>
+        <div class="mini-world">
+          <span class="mini-school">🏫</span>
+          <span class="mini-library">📚</span>
+          <span class="mini-park">🌳</span>
+          <span id="miniPlayer" class="mini-player">●</span>
+        </div>
+      </aside>
+
+      <!-- DESKTOP CONTROL HINT -->
+      <div class="desktop-hint">
+        <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Bergerak</span>
+        <span><kbd>E</kbd> / <kbd>Space</kbd> Interaksi</span>
+      </div>
+
+      <!-- MOBILE CONTROLS -->
+      <div id="mobileControls" class="mobile-controls">
+        <div id="joystick" class="joystick">
+          <div id="joystickKnob" class="joystick-knob"></div>
+        </div>
+        <button id="actionBtn" class="action-btn">✋<small>AKSI</small></button>
+      </div>
+    </main>
+
+
+    <!-- QUIZ / CASE MODAL -->
+    <div id="quizModal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="quiz-card">
+        <div class="quiz-head">
+          <span id="quizBadge">📚 Tantangan</span>
+          <button id="closeQuizBtn" class="quiz-close">×</button>
+        </div>
+        <h2 id="quizTitle">Tantangan Pancasila</h2>
+        <p id="quizCase" class="quiz-case"></p>
+        <div id="quizOptions" class="quiz-options"></div>
+        <div id="quizFeedback" class="quiz-feedback"></div>
+      </div>
+    </div>
+
+    <!-- PAUSE MODAL -->
+    <div id="pauseModal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="modal-card">
+        <h2>Permainan Dijeda</h2>
+        <button id="resumeBtn">▶ Lanjutkan</button>
+        <button id="guideBtn">📖 Panduan</button>
+        <button id="resetBtn">↻ Mulai Ulang</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+const gameArea = document.getElementById('gameArea');
+const player = document.getElementById('player');
+const dialogue = document.getElementById('dialogue');
+const dialogueName = document.getElementById('dialogueName');
+const dialogueText = document.getElementById('dialogueText');
+const nextDialogue = document.getElementById('nextDialogue');
+const xpText = document.getElementById('xpText');
+const progressBar = document.getElementById('progressBar');
+const progressText = document.getElementById('progressText');
+const missionText = document.getElementById('missionText');
+const missionTitle = document.getElementById('missionTitle');
+const actionBtn = document.getElementById('actionBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const pauseModal = document.getElementById('pauseModal');
+const resumeBtn = document.getElementById('resumeBtn');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const resetBtn = document.getElementById('resetBtn');
+const miniPlayer = document.getElementById('miniPlayer');
+
+const quizModal = document.getElementById('quizModal');
+const quizTitle = document.getElementById('quizTitle');
+const quizCase = document.getElementById('quizCase');
+const quizOptions = document.getElementById('quizOptions');
+const quizFeedback = document.getElementById('quizFeedback');
+const quizBadge = document.getElementById('quizBadge');
+const closeQuizBtn = document.getElementById('closeQuizBtn');
+
+const libraryArea = document.getElementById('libraryArea');
+const parkArea = document.getElementById('parkArea');
+const schoolArea = document.getElementById('schoolArea');
+const libraryQuestMark = document.getElementById('libraryQuestMark');
+const parkQuestMark = document.getElementById('parkQuestMark');
+const schoolQuestMark = document.getElementById('schoolQuestMark');
+
+let state = {
+  x: 47,
+  y: 69,
+  xp: 0,
+  progress: 25,
+  paused: false,
+  stage: 0, // 0 Nadia, 1 Library, 2 Pak Budi, 3 Park, 4 Final School, 5 Complete
+  lastDir: 'down'
+};
+
+const keys = {};
+const speed = 0.16;
+let last = performance.now();
+let activeQuiz = null;
+
+const STAGES = [
+  {
+    mission: 'Temui Nadia untuk menerima misi pertama.',
+    progress: 25,
+    xp: 0
+  },
+  {
+    mission: 'Pergi ke Perpustakaan dan selesaikan Tantangan Toleransi.',
+    progress: 40,
+    xp: 20
+  },
+  {
+    mission: 'Temui Pak Budi dan analisis contoh perilaku Pancasila.',
+    progress: 55,
+    xp: 35
+  },
+  {
+    mission: 'Pergi ke Taman dan pilih tindakan yang mencerminkan musyawarah.',
+    progress: 70,
+    xp: 50
+  },
+  {
+    mission: 'Kembali ke depan Sekolah untuk menyelesaikan Final Mission.',
+    progress: 85,
+    xp: 70
+  },
+  {
+    mission: 'Level 1 selesai. Kamu telah menemukan nilai utama Pancasila!',
+    progress: 100,
+    xp: 100
+  }
+];
+
+function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+
+function updateHUD(){
+  const s = STAGES[state.stage];
+  state.xp = s.xp;
+  state.progress = s.progress;
+  xpText.textContent = state.xp + ' XP';
+  progressBar.style.width = state.progress + '%';
+  progressText.textContent = state.progress + '%';
+  missionText.textContent = s.mission;
+  updateQuestMarkers();
+}
+
+function updateQuestMarkers(){
+  libraryQuestMark.classList.toggle('hidden', state.stage !== 1);
+  parkQuestMark.classList.toggle('hidden', state.stage !== 3);
+  schoolQuestMark.classList.toggle('hidden', state.stage !== 4);
+  document.querySelector('.npc-nadia .quest-mark')?.classList.toggle('hidden', state.stage !== 0);
+  document.querySelector('.npc-teacher .talk-bubble')?.classList.toggle('hidden', state.stage !== 2);
+}
+
+function updatePlayer(){
+  player.style.left = state.x + '%';
+  player.style.top = state.y + '%';
+  miniPlayer.style.left = clamp(state.x,5,90) + '%';
+  miniPlayer.style.top = clamp(state.y,8,86) + '%';
+}
+
+function move(dx,dy){
+  if(state.paused || !quizModal.classList.contains('hidden') || !dialogue.classList.contains('hidden')) return;
+  state.x = clamp(state.x + dx, 2, 94);
+  state.y = clamp(state.y + dy, 7, 84);
+  player.classList.toggle('moving', Math.abs(dx)+Math.abs(dy)>0);
+  if(dx<0) state.lastDir='left';
+  if(dx>0) state.lastDir='right';
+  if(dy<0) state.lastDir='up';
+  if(dy>0) state.lastDir='down';
+  updatePlayer();
+}
+
+function frame(now){
+  const dt = Math.min(32, now-last);
+  last = now;
+  let dx=0,dy=0;
+  if(keys['w']||keys['arrowup']) dy -= speed*dt/16;
+  if(keys['s']||keys['arrowdown']) dy += speed*dt/16;
+  if(keys['a']||keys['arrowleft']) dx -= speed*dt/16;
+  if(keys['d']||keys['arrowright']) dx += speed*dt/16;
+  if(dx||dy) move(dx,dy); else player.classList.remove('moving');
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+document.addEventListener('keydown', e=>{
+  const k=e.key.toLowerCase();
+  keys[k]=true;
+  if([' ','e','enter'].includes(k)) {
+    e.preventDefault();
+    interact();
+  }
+  if(k==='escape') togglePause();
+});
+document.addEventListener('keyup', e=> keys[e.key.toLowerCase()]=false);
+
+function distanceTo(el){
+  const r1 = player.getBoundingClientRect();
+  const r2 = el.getBoundingClientRect();
+  const x1=r1.left+r1.width/2, y1=r1.top+r1.height/2;
+  const x2=r2.left+r2.width/2, y2=r2.top+r2.height/2;
+  return Math.hypot(x1-x2,y1-y2);
+}
+
+function near(el, threshold=160){
+  return distanceTo(el) < threshold;
+}
+
+function interact(){
+  const nadia=document.querySelector('.npc-nadia');
+  const teacher=document.querySelector('.npc-teacher');
+
+  // Stage-specific interactions take priority
+  if(state.stage===0 && near(nadia,165)){
+    openDialogue(
+      'Nadia',
+      'Ayo, kita jelajahi sekolah ini! Misi pertamamu adalah menemukan sikap yang menunjukkan toleransi dan penghargaan terhadap perbedaan.'
+    );
+    return;
+  }
+
+  if(state.stage===1 && near(libraryArea,190)){
+    openQuiz('library');
+    return;
+  }
+
+  if(state.stage===2 && near(teacher,165)){
+    openQuiz('teacher');
+    return;
+  }
+
+  if(state.stage===3 && near(parkArea,190)){
+    openQuiz('park');
+    return;
+  }
+
+  if(state.stage===4 && near(schoolArea,215)){
+    openQuiz('final');
+    return;
+  }
+
+  // Helpful contextual hints
+  if(near(nadia,165)){
+    openDialogue('Nadia','Lanjutkan misi sesuai petunjuk di kiri bawah. Tanda ! menunjukkan lokasi berikutnya.');
+    return;
+  }
+  if(near(libraryArea,190)){
+    openDialogue('Perpustakaan', state.stage < 1
+      ? 'Temui Nadia terlebih dahulu untuk menerima misi.'
+      : 'Tantangan di Perpustakaan sudah selesai. Lanjutkan ke lokasi berikutnya.');
+    return;
+  }
+  if(near(teacher,165)){
+    openDialogue('Pak Budi', state.stage < 2
+      ? 'Selesaikan Tantangan Perpustakaan terlebih dahulu.'
+      : 'Bagus. Ikuti misi berikutnya dan terus gunakan alasan berdasarkan nilai Pancasila.');
+    return;
+  }
+  if(near(parkArea,190)){
+    openDialogue('Taman', state.stage < 3
+      ? 'Masih ada misi sebelumnya yang perlu kamu selesaikan.'
+      : 'Kamu sudah menyelesaikan misi di Taman.');
+    return;
+  }
+
+  openDialogue('Petunjuk','Ikuti teks “Misi Saat Ini” dan dekati objek atau NPC yang bertanda !, lalu tekan E / Space / tombol AKSI.');
+}
+
+function openDialogue(name,text){
+  dialogueName.textContent=name;
+  dialogueText.textContent=text;
+  dialogue.classList.remove('hidden');
+}
+function closeDialogue(){ dialogue.classList.add('hidden'); }
+
+nextDialogue.addEventListener('click',()=>{
+  if(dialogueName.textContent==='Nadia' && state.stage===0){
+    state.stage=1;
+    updateHUD();
+    missionTitle.textContent='Tantangan Perpustakaan';
+  }
+  closeDialogue();
+});
+
+const QUIZZES = {
+  library: {
+    badge:'📚 Perpustakaan • C4',
+    title:'Tantangan Toleransi',
+    caseText:'Dua siswa memiliki kesukaan budaya yang berbeda. Salah satu siswa mengejek kesukaan temannya dan mengatakan bahwa hanya budayanya yang pantas dihargai. Sikap manakah yang paling mencerminkan kepribadian Pancasila?',
+    options:[
+      ['Membiarkan karena hanya bercanda.', false],
+      ['Menghargai perbedaan dan tidak merendahkan pilihan orang lain.', true],
+      ['Meminta seluruh teman memiliki kesukaan yang sama.', false],
+      ['Menjauhi siswa yang memiliki kesukaan berbeda.', false]
+    ],
+    correctText:'✅ Tepat! Menghargai perbedaan menunjukkan sikap kemanusiaan dan toleransi.',
+    nextStage:2
+  },
+  teacher: {
+    badge:'👨‍🏫 Pak Budi • Analisis',
+    title:'Analisis Perilaku',
+    caseText:'Ketua kelompok memberi kesempatan kepada semua anggota untuk menyampaikan pendapat sebelum mengambil keputusan. Mengapa perilaku tersebut sesuai dengan Pancasila?',
+    options:[
+      ['Karena keputusan menjadi lebih cepat tanpa perlu berdiskusi.', false],
+      ['Karena semua pendapat didengar dan keputusan dilakukan melalui musyawarah.', true],
+      ['Karena ketua kelompok memiliki hak menentukan keputusan sendiri.', false],
+      ['Karena pendapat mayoritas selalu harus diikuti tanpa pertimbangan.', false]
+    ],
+    correctText:'✅ Benar. Ini mencerminkan nilai musyawarah dan penghargaan terhadap pendapat.',
+    nextStage:3
+  },
+  park: {
+    badge:'🌳 Taman • C5',
+    title:'Pilih Tindakan',
+    caseText:'Dua kelompok kelas berselisih memilih pertunjukan budaya lokal atau budaya populer luar negeri. Apa tindakan yang paling tepat?',
+    options:[
+      ['Memilih berdasarkan suara terbanyak tanpa mendengar kelompok lain.', false],
+      ['Membatalkan kegiatan agar tidak terjadi konflik.', false],
+      ['Mendengarkan alasan semua pihak, membandingkan pilihan, lalu bermusyawarah.', true],
+      ['Meminta guru menentukan pilihan tanpa melibatkan siswa.', false]
+    ],
+    correctText:'✅ Tepat! Solusi ini menjaga persatuan sekaligus memberi ruang musyawarah.',
+    nextStage:4
+  },
+  final: {
+    badge:'🏫 Final Mission • C6',
+    title:'Final Mission — Kepribadian Pancasila',
+    caseText:'Kelas ingin membuat pertunjukan yang mencerminkan kepribadian Pancasila. Rencana mana yang paling lengkap dan dapat dilaksanakan?',
+    options:[
+      ['Ketua memilih pertunjukan sendiri agar cepat selesai.', false],
+      ['Kelompok berdiskusi, membagi tugas adil, menentukan waktu latihan, dan mengecek keberhasilan melalui keterlibatan semua anggota.', true],
+      ['Semua siswa mengikuti ide kelompok yang paling populer.', false],
+      ['Kegiatan ditunda sampai semua siswa memiliki pendapat yang sama.', false]
+    ],
+    correctText:'🏆 Luar biasa! Kamu berhasil menyelesaikan Level 1 dan menemukan nilai toleransi, musyawarah, persatuan, serta keadilan.',
+    nextStage:5
+  }
+};
+
+function openQuiz(id){
+  activeQuiz=id;
+  const q=QUIZZES[id];
+  quizBadge.textContent=q.badge;
+  quizTitle.textContent=q.title;
+  quizCase.textContent=q.caseText;
+  quizFeedback.textContent='';
+  quizFeedback.className='quiz-feedback';
+  quizOptions.innerHTML='';
+  q.options.forEach(([label,correct],i)=>{
+    const btn=document.createElement('button');
+    btn.className='quiz-option';
+    btn.textContent=String.fromCharCode(65+i)+'. '+label;
+    btn.addEventListener('click',()=>answerQuiz(btn,correct,q));
+    quizOptions.appendChild(btn);
+  });
+  quizModal.classList.remove('hidden');
+}
+
+function answerQuiz(btn,correct,q){
+  const buttons=[...quizOptions.querySelectorAll('.quiz-option')];
+  buttons.forEach(b=>b.disabled=true);
+  if(correct){
+    btn.classList.add('correct');
+    quizFeedback.textContent=q.correctText;
+    quizFeedback.className='quiz-feedback good';
+    setTimeout(()=>{
+      quizModal.classList.add('hidden');
+      state.stage=q.nextStage;
+      updateHUD();
+      if(state.stage===2) missionTitle.textContent='Analisis bersama Pak Budi';
+      if(state.stage===3) missionTitle.textContent='Tantangan Taman';
+      if(state.stage===4) missionTitle.textContent='Final Mission';
+      if(state.stage===5) completeLevel();
+    },1250);
+  }else{
+    btn.classList.add('wrong');
+    quizFeedback.textContent='Belum tepat. Baca kembali situasi dan perhatikan nilai Pancasila yang paling relevan.';
+    quizFeedback.className='quiz-feedback bad';
+    setTimeout(()=>{
+      buttons.forEach(b=>{b.disabled=false;b.classList.remove('wrong')});
+      quizFeedback.textContent='Coba sekali lagi.';
+    },1000);
+  }
+}
+
+function completeLevel(){
+  missionTitle.textContent='Level 1 Selesai!';
+  localStorage.setItem('pancaquest_level1', JSON.stringify({
+    completed:true,
+    xp:100,
+    completed_at:new Date().toISOString()
+  }));
+  localStorage.setItem('pancapath_quest', JSON.stringify({
+    completed:true,
+    xp:100,
+    badge:'🏅 Pancasila Pathfinder',
+    route:'adventure-level-1',
+    completed_at:new Date().toISOString()
+  }));
+  openDialogue('🏆 Level 1 Selesai','Kamu memperoleh 100 XP dan Badge Pancasila Pathfinder. Level berikutnya dapat dikembangkan dari sini.');
+}
+
+closeQuizBtn.addEventListener('click',()=>quizModal.classList.add('hidden'));
+actionBtn.addEventListener('click',interact);
+document.getElementById('missionBtn').addEventListener('click',()=>openDialogue('Misi Saat Ini',missionText.textContent));
+
+function togglePause(){
+  state.paused=!state.paused;
+  pauseModal.classList.toggle('hidden',!state.paused);
+}
+pauseBtn.addEventListener('click',togglePause);
+resumeBtn.addEventListener('click',()=>{state.paused=false;pauseModal.classList.add('hidden')});
+resetBtn.addEventListener('click',()=>{
+  localStorage.removeItem('pancaquest_level1');
+  location.reload();
+});
+
+fullscreenBtn.addEventListener('click',()=>{
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+});
+
+// Joystick
+const joystick = document.getElementById('joystick');
+const knob = document.getElementById('joystickKnob');
+let joyActive=false, joyCenter={x:0,y:0};
+
+function joyStart(clientX,clientY){
+  const r=joystick.getBoundingClientRect();
+  joyCenter={x:r.left+r.width/2,y:r.top+r.height/2};
+  joyActive=true; joyMove(clientX,clientY);
+}
+function joyMove(clientX,clientY){
+  if(!joyActive)return;
+  let dx=clientX-joyCenter.x, dy=clientY-joyCenter.y;
+  const max=34, len=Math.hypot(dx,dy)||1;
+  if(len>max){dx=dx/len*max;dy=dy/len*max}
+  knob.style.transform=`translate(${30+dx}px,${30+dy}px)`;
+  move(dx/max*.75,dy/max*.75);
+}
+function joyEnd(){joyActive=false;knob.style.transform='translate(30px,30px)'}
+joystick.addEventListener('pointerdown',e=>{joystick.setPointerCapture(e.pointerId);joyStart(e.clientX,e.clientY)});
+joystick.addEventListener('pointermove',e=>joyMove(e.clientX,e.clientY));
+joystick.addEventListener('pointerup',joyEnd);
+joystick.addEventListener('pointercancel',joyEnd);
+
+document.getElementById('guideBtn').addEventListener('click',()=>{
+  alert('Laptop: WASD / panah untuk bergerak, E atau Space untuk interaksi.\\nHP: gunakan joystick analog dan tombol AKSI.\\nIkuti tanda ! dan teks Misi Saat Ini.');
+});
+document.getElementById('soundBtn').addEventListener('click',e=>{
+  e.currentTarget.textContent = e.currentTarget.textContent==='🔊' ? '🔇' : '🔊';
+});
+document.getElementById('miniExpand').addEventListener('click',()=>openDialogue('Peta Sekolah','Urutan Level 1: Nadia → Perpustakaan → Pak Budi → Taman → Sekolah (Final Mission).'));
+
+updatePlayer();
+updateHUD();
+</script>
+</body>
+</html>

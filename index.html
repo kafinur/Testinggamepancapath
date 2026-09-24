@@ -44,7 +44,8 @@
       <div class="hud xp">⭐ <strong id="xpText">0 XP</strong></div>
 
       <!-- SCHOOL -->
-      <section class="school scene-card">
+      <section class="school scene-card" id="schoolArea">
+        <div id="schoolQuestMark" class="location-quest hidden">!</div>
         <div class="roof"></div>
         <div class="school-logo">✦</div>
         <div class="school-title">SEKOLAH</div>
@@ -57,7 +58,8 @@
       </section>
 
       <!-- LIBRARY -->
-      <section class="library scene-card">
+      <section class="library scene-card" id="libraryArea">
+        <div id="libraryQuestMark" class="location-quest hidden">!</div>
         <div class="mini-roof"></div>
         <div class="library-sign">📖 PERPUSTAKAAN</div>
         <div class="shelves">
@@ -66,7 +68,8 @@
       </section>
 
       <!-- PARK -->
-      <section class="park scene-card">
+      <section class="park scene-card" id="parkArea">
+        <div id="parkQuestMark" class="location-quest hidden">!</div>
         <div class="fountain"><div class="water"></div></div>
         <div class="park-sign">🌳 TAMAN</div>
       </section>
@@ -200,6 +203,22 @@
         <button id="actionBtn" class="action-btn">✋<small>AKSI</small></button>
       </div>
     </main>
+
+
+    <!-- QUIZ / CASE MODAL -->
+    <div id="quizModal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="quiz-card">
+        <div class="quiz-head">
+          <span id="quizBadge">📚 Tantangan</span>
+          <button id="closeQuizBtn" class="quiz-close">×</button>
+        </div>
+        <h2 id="quizTitle">Tantangan Pancasila</h2>
+        <p id="quizCase" class="quiz-case"></p>
+        <div id="quizOptions" class="quiz-options"></div>
+        <div id="quizFeedback" class="quiz-feedback"></div>
+      </div>
+    </div>
 
     <!-- PAUSE MODAL -->
     <div id="pauseModal" class="modal hidden">

@@ -9,6 +9,7 @@ const xpText = document.getElementById('xpText');
 const progressBar = document.getElementById('progressBar');
 const progressText = document.getElementById('progressText');
 const missionText = document.getElementById('missionText');
+const missionTitle = document.getElementById('missionTitle');
 const actionBtn = document.getElementById('actionBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const pauseModal = document.getElementById('pauseModal');
@@ -17,22 +18,89 @@ const fullscreenBtn = document.getElementById('fullscreenBtn');
 const resetBtn = document.getElementById('resetBtn');
 const miniPlayer = document.getElementById('miniPlayer');
 
+const quizModal = document.getElementById('quizModal');
+const quizTitle = document.getElementById('quizTitle');
+const quizCase = document.getElementById('quizCase');
+const quizOptions = document.getElementById('quizOptions');
+const quizFeedback = document.getElementById('quizFeedback');
+const quizBadge = document.getElementById('quizBadge');
+const closeQuizBtn = document.getElementById('closeQuizBtn');
+
+const libraryArea = document.getElementById('libraryArea');
+const parkArea = document.getElementById('parkArea');
+const schoolArea = document.getElementById('schoolArea');
+const libraryQuestMark = document.getElementById('libraryQuestMark');
+const parkQuestMark = document.getElementById('parkQuestMark');
+const schoolQuestMark = document.getElementById('schoolQuestMark');
+
 let state = {
   x: 47,
   y: 69,
   xp: 0,
   progress: 25,
   paused: false,
-  questStarted: false,
-  dialogueStep: 0,
+  stage: 0, // 0 Nadia, 1 Library, 2 Pak Budi, 3 Park, 4 Final School, 5 Complete
   lastDir: 'down'
 };
 
 const keys = {};
 const speed = 0.16;
 let last = performance.now();
+let activeQuiz = null;
+
+const STAGES = [
+  {
+    mission: 'Temui Nadia untuk menerima misi pertama.',
+    progress: 25,
+    xp: 0
+  },
+  {
+    mission: 'Pergi ke Perpustakaan dan selesaikan Tantangan Toleransi.',
+    progress: 40,
+    xp: 20
+  },
+  {
+    mission: 'Temui Pak Budi dan analisis contoh perilaku Pancasila.',
+    progress: 55,
+    xp: 35
+  },
+  {
+    mission: 'Pergi ke Taman dan pilih tindakan yang mencerminkan musyawarah.',
+    progress: 70,
+    xp: 50
+  },
+  {
+    mission: 'Kembali ke depan Sekolah untuk menyelesaikan Final Mission.',
+    progress: 85,
+    xp: 70
+  },
+  {
+    mission: 'Level 1 selesai. Kamu telah menemukan nilai utama Pancasila!',
+    progress: 100,
+    xp: 100
+  }
+];
 
 function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+
+function updateHUD(){
+  const s = STAGES[state.stage];
+  state.xp = s.xp;
+  state.progress = s.progress;
+  xpText.textContent = state.xp + ' XP';
+  progressBar.style.width = state.progress + '%';
+  progressText.textContent = state.progress + '%';
+  missionText.textContent = s.mission;
+  updateQuestMarkers();
+}
+
+function updateQuestMarkers(){
+  libraryQuestMark.classList.toggle('hidden', state.stage !== 1);
+  parkQuestMark.classList.toggle('hidden', state.stage !== 3);
+  schoolQuestMark.classList.toggle('hidden', state.stage !== 4);
+  document.querySelector('.npc-nadia .quest-mark')?.classList.toggle('hidden', state.stage !== 0);
+  document.querySelector('.npc-teacher .talk-bubble')?.classList.toggle('hidden', state.stage !== 2);
+}
 
 function updatePlayer(){
   player.style.left = state.x + '%';
@@ -42,7 +110,7 @@ function updatePlayer(){
 }
 
 function move(dx,dy){
-  if(state.paused) return;
+  if(state.paused || !quizModal.classList.contains('hidden') || !dialogue.classList.contains('hidden')) return;
   state.x = clamp(state.x + dx, 2, 94);
   state.y = clamp(state.y + dy, 7, 84);
   player.classList.toggle('moving', Math.abs(dx)+Math.abs(dy)>0);
@@ -85,20 +153,68 @@ function distanceTo(el){
   return Math.hypot(x1-x2,y1-y2);
 }
 
+function near(el, threshold=160){
+  return distanceTo(el) < threshold;
+}
+
 function interact(){
   const nadia=document.querySelector('.npc-nadia');
   const teacher=document.querySelector('.npc-teacher');
-  if(distanceTo(nadia)<155){
-    openDialogue('Nadia', state.questStarted
-      ? 'Bagus! Sekarang coba temukan satu contoh perilaku yang menunjukkan musyawarah di sekolah.'
-      : 'Ayo, kita jelajahi sekolah ini! Ada banyak nilai Pancasila yang bisa kamu temukan di sini.');
+
+  // Stage-specific interactions take priority
+  if(state.stage===0 && near(nadia,165)){
+    openDialogue(
+      'Nadia',
+      'Ayo, kita jelajahi sekolah ini! Misi pertamamu adalah menemukan sikap yang menunjukkan toleransi dan penghargaan terhadap perbedaan.'
+    );
     return;
   }
-  if(distanceTo(teacher)<155){
-    openDialogue('Pak Budi','Ingat, nilai Pancasila terlihat dari cara kita memperlakukan orang lain, bekerja sama, dan mengambil keputusan.');
+
+  if(state.stage===1 && near(libraryArea,190)){
+    openQuiz('library');
     return;
   }
-  openDialogue('Petunjuk','Dekati Nadia atau Pak Budi lalu tekan E / Space / tombol AKSI.');
+
+  if(state.stage===2 && near(teacher,165)){
+    openQuiz('teacher');
+    return;
+  }
+
+  if(state.stage===3 && near(parkArea,190)){
+    openQuiz('park');
+    return;
+  }
+
+  if(state.stage===4 && near(schoolArea,215)){
+    openQuiz('final');
+    return;
+  }
+
+  // Helpful contextual hints
+  if(near(nadia,165)){
+    openDialogue('Nadia','Lanjutkan misi sesuai petunjuk di kiri bawah. Tanda ! menunjukkan lokasi berikutnya.');
+    return;
+  }
+  if(near(libraryArea,190)){
+    openDialogue('Perpustakaan', state.stage < 1
+      ? 'Temui Nadia terlebih dahulu untuk menerima misi.'
+      : 'Tantangan di Perpustakaan sudah selesai. Lanjutkan ke lokasi berikutnya.');
+    return;
+  }
+  if(near(teacher,165)){
+    openDialogue('Pak Budi', state.stage < 2
+      ? 'Selesaikan Tantangan Perpustakaan terlebih dahulu.'
+      : 'Bagus. Ikuti misi berikutnya dan terus gunakan alasan berdasarkan nilai Pancasila.');
+    return;
+  }
+  if(near(parkArea,190)){
+    openDialogue('Taman', state.stage < 3
+      ? 'Masih ada misi sebelumnya yang perlu kamu selesaikan.'
+      : 'Kamu sudah menyelesaikan misi di Taman.');
+    return;
+  }
+
+  openDialogue('Petunjuk','Ikuti teks “Misi Saat Ini” dan dekati objek atau NPC yang bertanda !, lalu tekan E / Space / tombol AKSI.');
 }
 
 function openDialogue(name,text){
@@ -109,17 +225,133 @@ function openDialogue(name,text){
 function closeDialogue(){ dialogue.classList.add('hidden'); }
 
 nextDialogue.addEventListener('click',()=>{
-  if(dialogueName.textContent==='Nadia' && !state.questStarted){
-    state.questStarted=true;
-    state.xp=20;
-    state.progress=40;
-    xpText.textContent=state.xp+' XP';
-    progressBar.style.width=state.progress+'%';
-    progressText.textContent=state.progress+'%';
-    missionText.textContent='Temukan perilaku yang mencerminkan musyawarah dan penghargaan terhadap perbedaan.';
+  if(dialogueName.textContent==='Nadia' && state.stage===0){
+    state.stage=1;
+    updateHUD();
+    missionTitle.textContent='Tantangan Perpustakaan';
   }
   closeDialogue();
 });
+
+const QUIZZES = {
+  library: {
+    badge:'📚 Perpustakaan • C4',
+    title:'Tantangan Toleransi',
+    caseText:'Dua siswa memiliki kesukaan budaya yang berbeda. Salah satu siswa mengejek kesukaan temannya dan mengatakan bahwa hanya budayanya yang pantas dihargai. Sikap manakah yang paling mencerminkan kepribadian Pancasila?',
+    options:[
+      ['Membiarkan karena hanya bercanda.', false],
+      ['Menghargai perbedaan dan tidak merendahkan pilihan orang lain.', true],
+      ['Meminta seluruh teman memiliki kesukaan yang sama.', false],
+      ['Menjauhi siswa yang memiliki kesukaan berbeda.', false]
+    ],
+    correctText:'✅ Tepat! Menghargai perbedaan menunjukkan sikap kemanusiaan dan toleransi.',
+    nextStage:2
+  },
+  teacher: {
+    badge:'👨‍🏫 Pak Budi • Analisis',
+    title:'Analisis Perilaku',
+    caseText:'Ketua kelompok memberi kesempatan kepada semua anggota untuk menyampaikan pendapat sebelum mengambil keputusan. Mengapa perilaku tersebut sesuai dengan Pancasila?',
+    options:[
+      ['Karena keputusan menjadi lebih cepat tanpa perlu berdiskusi.', false],
+      ['Karena semua pendapat didengar dan keputusan dilakukan melalui musyawarah.', true],
+      ['Karena ketua kelompok memiliki hak menentukan keputusan sendiri.', false],
+      ['Karena pendapat mayoritas selalu harus diikuti tanpa pertimbangan.', false]
+    ],
+    correctText:'✅ Benar. Ini mencerminkan nilai musyawarah dan penghargaan terhadap pendapat.',
+    nextStage:3
+  },
+  park: {
+    badge:'🌳 Taman • C5',
+    title:'Pilih Tindakan',
+    caseText:'Dua kelompok kelas berselisih memilih pertunjukan budaya lokal atau budaya populer luar negeri. Apa tindakan yang paling tepat?',
+    options:[
+      ['Memilih berdasarkan suara terbanyak tanpa mendengar kelompok lain.', false],
+      ['Membatalkan kegiatan agar tidak terjadi konflik.', false],
+      ['Mendengarkan alasan semua pihak, membandingkan pilihan, lalu bermusyawarah.', true],
+      ['Meminta guru menentukan pilihan tanpa melibatkan siswa.', false]
+    ],
+    correctText:'✅ Tepat! Solusi ini menjaga persatuan sekaligus memberi ruang musyawarah.',
+    nextStage:4
+  },
+  final: {
+    badge:'🏫 Final Mission • C6',
+    title:'Final Mission — Kepribadian Pancasila',
+    caseText:'Kelas ingin membuat pertunjukan yang mencerminkan kepribadian Pancasila. Rencana mana yang paling lengkap dan dapat dilaksanakan?',
+    options:[
+      ['Ketua memilih pertunjukan sendiri agar cepat selesai.', false],
+      ['Kelompok berdiskusi, membagi tugas adil, menentukan waktu latihan, dan mengecek keberhasilan melalui keterlibatan semua anggota.', true],
+      ['Semua siswa mengikuti ide kelompok yang paling populer.', false],
+      ['Kegiatan ditunda sampai semua siswa memiliki pendapat yang sama.', false]
+    ],
+    correctText:'🏆 Luar biasa! Kamu berhasil menyelesaikan Level 1 dan menemukan nilai toleransi, musyawarah, persatuan, serta keadilan.',
+    nextStage:5
+  }
+};
+
+function openQuiz(id){
+  activeQuiz=id;
+  const q=QUIZZES[id];
+  quizBadge.textContent=q.badge;
+  quizTitle.textContent=q.title;
+  quizCase.textContent=q.caseText;
+  quizFeedback.textContent='';
+  quizFeedback.className='quiz-feedback';
+  quizOptions.innerHTML='';
+  q.options.forEach(([label,correct],i)=>{
+    const btn=document.createElement('button');
+    btn.className='quiz-option';
+    btn.textContent=String.fromCharCode(65+i)+'. '+label;
+    btn.addEventListener('click',()=>answerQuiz(btn,correct,q));
+    quizOptions.appendChild(btn);
+  });
+  quizModal.classList.remove('hidden');
+}
+
+function answerQuiz(btn,correct,q){
+  const buttons=[...quizOptions.querySelectorAll('.quiz-option')];
+  buttons.forEach(b=>b.disabled=true);
+  if(correct){
+    btn.classList.add('correct');
+    quizFeedback.textContent=q.correctText;
+    quizFeedback.className='quiz-feedback good';
+    setTimeout(()=>{
+      quizModal.classList.add('hidden');
+      state.stage=q.nextStage;
+      updateHUD();
+      if(state.stage===2) missionTitle.textContent='Analisis bersama Pak Budi';
+      if(state.stage===3) missionTitle.textContent='Tantangan Taman';
+      if(state.stage===4) missionTitle.textContent='Final Mission';
+      if(state.stage===5) completeLevel();
+    },1250);
+  }else{
+    btn.classList.add('wrong');
+    quizFeedback.textContent='Belum tepat. Baca kembali situasi dan perhatikan nilai Pancasila yang paling relevan.';
+    quizFeedback.className='quiz-feedback bad';
+    setTimeout(()=>{
+      buttons.forEach(b=>{b.disabled=false;b.classList.remove('wrong')});
+      quizFeedback.textContent='Coba sekali lagi.';
+    },1000);
+  }
+}
+
+function completeLevel(){
+  missionTitle.textContent='Level 1 Selesai!';
+  localStorage.setItem('pancaquest_level1', JSON.stringify({
+    completed:true,
+    xp:100,
+    completed_at:new Date().toISOString()
+  }));
+  localStorage.setItem('pancapath_quest', JSON.stringify({
+    completed:true,
+    xp:100,
+    badge:'🏅 Pancasila Pathfinder',
+    route:'adventure-level-1',
+    completed_at:new Date().toISOString()
+  }));
+  openDialogue('🏆 Level 1 Selesai','Kamu memperoleh 100 XP dan Badge Pancasila Pathfinder. Level berikutnya dapat dikembangkan dari sini.');
+}
+
+closeQuizBtn.addEventListener('click',()=>quizModal.classList.add('hidden'));
 actionBtn.addEventListener('click',interact);
 document.getElementById('missionBtn').addEventListener('click',()=>openDialogue('Misi Saat Ini',missionText.textContent));
 
@@ -129,7 +361,10 @@ function togglePause(){
 }
 pauseBtn.addEventListener('click',togglePause);
 resumeBtn.addEventListener('click',()=>{state.paused=false;pauseModal.classList.add('hidden')});
-resetBtn.addEventListener('click',()=>location.reload());
+resetBtn.addEventListener('click',()=>{
+  localStorage.removeItem('pancaquest_level1');
+  location.reload();
+});
 
 fullscreenBtn.addEventListener('click',()=>{
   if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
@@ -161,11 +396,12 @@ joystick.addEventListener('pointerup',joyEnd);
 joystick.addEventListener('pointercancel',joyEnd);
 
 document.getElementById('guideBtn').addEventListener('click',()=>{
-  alert('Laptop: WASD / panah untuk bergerak, E atau Space untuk interaksi.\\nHP: gunakan joystick analog dan tombol AKSI.');
+  alert('Laptop: WASD / panah untuk bergerak, E atau Space untuk interaksi.\\nHP: gunakan joystick analog dan tombol AKSI.\\nIkuti tanda ! dan teks Misi Saat Ini.');
 });
 document.getElementById('soundBtn').addEventListener('click',e=>{
   e.currentTarget.textContent = e.currentTarget.textContent==='🔊' ? '🔇' : '🔊';
 });
-document.getElementById('miniExpand').addEventListener('click',()=>openDialogue('Peta Sekolah','Lokasi penting: Sekolah, Perpustakaan, dan Taman. Ikuti jalur dan cari NPC bertanda !'));
+document.getElementById('miniExpand').addEventListener('click',()=>openDialogue('Peta Sekolah','Urutan Level 1: Nadia → Perpustakaan → Pak Budi → Taman → Sekolah (Final Mission).'));
 
 updatePlayer();
+updateHUD();
