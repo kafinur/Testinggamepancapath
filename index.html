@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#0d1738" />
+  <title>PancaQuest Adventure • PancaPath v10</title>
+  <link rel="icon" href="../assets/favicon.png" />
+  <link rel="stylesheet" href="game.css" />
+</head>
+<body>
+  <main id="gameShell">
+    <header class="game-head">
+      <div class="brand"><img src="../assets/pancapath-mark.webp" alt=""><div><strong>PancaQuest Adventure</strong><small>PancaPath v10 • Kepribadian Bangsa</small></div></div>
+      <div class="head-actions"><button id="soundBtn" title="Suara">🔊</button><button id="fullBtn" title="Layar penuh">⛶</button><button id="pauseBtn" title="Jeda">Ⅱ</button></div>
+    </header>
+
+    <section class="game-frame">
+      <canvas id="gameCanvas" width="960" height="540" aria-label="Area permainan PancaQuest Adventure"></canvas>
+
+      <div class="hud">
+        <div id="hearts" class="hearts">❤️❤️❤️</div>
+        <div class="level-pill"><small id="levelLabel">LEVEL 1</small><strong id="levelTitle">Sekolah • Kenali Nilainya</strong><div class="level-progress"><span id="levelProgress"></span></div></div>
+        <div class="xp-pill">⭐ <strong id="xpValue">0</strong><span> XP</span></div>
+      </div>
+
+      <div id="interactPrompt" class="interact-prompt hidden"><span class="desktop-key">E</span><span class="mobile-key">✋</span><b id="promptText">Interaksi</b></div>
+      <div id="toast" class="toast hidden"></div>
+
+      <div id="mobileControls" class="mobile-controls">
+        <div id="joystick" class="joystick"><div class="joy-ring"></div><div id="joyKnob" class="joy-knob"></div></div>
+        <button id="actionBtn" class="action-btn" aria-label="Interaksi">✋<span>Aksi</span></button>
+      </div>
+
+      <div id="startOverlay" class="overlay show">
+        <div class="panel start-panel">
+          <div class="title-badge">🎮 ADVENTURE MODE</div>
+          <h1>PancaQuest<br><em>Adventure</em></h1>
+          <p class="subtitle">Menjelajah Kepribadian Bangsa</p>
+          <div class="player-card"><span>👤</span><div><small>PETUALANG</small><strong id="studentName">PancaPath Explorer</strong><b id="studentRoute">Jalur —</b></div></div>
+          <div class="mission-list"><span>🏫 Kenali Nilainya</span><span>🌳 Kumpulkan Nilai Baik</span><span>🗣️ Ruang Musyawarah</span><span>🛠️ Bangun Aksi Nyata</span></div>
+          <div class="control-hint"><span>💻 WASD / Arrow + E</span><span>📱 Joystick + Tombol Aksi</span></div>
+          <button id="startBtn" class="primary">Mulai Petualangan</button>
+          <button id="backBeforeBtn" class="ghost">← Kembali ke PancaPath</button>
+        </div>
+      </div>
+
+      <div id="modalOverlay" class="overlay">
+        <div id="modalPanel" class="panel modal-panel"></div>
+      </div>
+
+      <div id="pauseOverlay" class="overlay">
+        <div class="panel pause-panel"><h2>⏸ Menu Jeda</h2><button id="resumeBtn" class="primary">▶ Lanjutkan</button><button id="helpBtn" class="ghost">📖 Panduan</button><button id="restartLevelBtn" class="ghost">↻ Ulang Level</button><button id="exitBtn" class="danger">⌂ Kembali ke PancaPath</button></div>
+      </div>
+
+      <div id="completeOverlay" class="overlay">
+        <div class="panel complete-panel"><div class="trophy">🏆</div><span>PANCAQUEST COMPLETE</span><h2>Petualangan Selesai!</h2><p id="completeText">Kamu berhasil menyelesaikan empat level.</p><div class="complete-grid"><div><small>SKOR</small><strong id="finalXp">0/100</strong></div><div><small>BADGE</small><strong id="finalBadge">—</strong></div><div><small>WAKTU</small><strong id="finalTime">00:00</strong></div></div><button id="returnBtn" class="primary">Simpan & Kembali ke PancaPath →</button></div>
+      </div>
+    </section>
+    <footer><span>💡 Petunjuk: dekati karakter/portal hingga tombol interaksi muncul.</span><span>Kontrol otomatis menyesuaikan perangkat.</span></footer>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
