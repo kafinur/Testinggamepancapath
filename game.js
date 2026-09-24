@@ -50,6 +50,22 @@ const l3Message = document.getElementById('l3Message');
 const level3CompleteModal = document.getElementById('level3CompleteModal');
 const l3TotalXp = document.getElementById('l3TotalXp');
 const goLevel4Btn = document.getElementById('goLevel4Btn');
+const level4Scene=document.getElementById('level4Scene');
+const scenarioTitle=document.getElementById('scenarioTitle');
+const scenarioText=document.getElementById('scenarioText');
+const l4DoneText=document.getElementById('l4Done');
+const l4Message=document.getElementById('l4Message');
+const adventureCompleteModal=document.getElementById('adventureCompleteModal');
+const finalBadge=document.getElementById('finalBadge');
+const finalAdventureXp=document.getElementById('finalAdventureXp');
+const finalScore=document.getElementById('finalScore');
+const finalScenario=document.getElementById('finalScenario');
+const finalAction=document.getElementById('finalAction');
+const finalActor=document.getElementById('finalActor');
+const finalTime=document.getElementById('finalTime');
+const finalIndicator=document.getElementById('finalIndicator');
+const saveReturnBtn=document.getElementById('saveReturnBtn');
+const restartRandomBtn=document.getElementById('restartRandomBtn');
 
 let state = {
   x: 47,
@@ -65,7 +81,8 @@ let state = {
   lastHazardHit: 0,
   level3Step: 0,
   audioEnabled: true,
-  audioStarted: false
+  audioStarted: false,
+  level4Step:0, mistakes:0, level4Scenario:null, level4Plan:{}
 };
 
 const keys = {};
@@ -136,6 +153,7 @@ function frame(now){
   updateNearPrompts();
   if(state.currentLevel===2) checkLevel2Collisions();
   if(state.currentLevel===3) checkLevel3Interactions();
+  if(state.currentLevel===4) checkLevel4Interactions();
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
@@ -192,6 +210,11 @@ function updateNearPrompts(){
 
 function interact(){
   ensureAudio();
+
+  if(state.currentLevel===4){
+    if(!interactLevel4()){l4Message.textContent='🛠️ Dekati stasiun aksi yang aktif lalu tekan E / Space / AKSI.';playSfx('interact');}
+    return;
+  }
 
   if(state.currentLevel===3){
     if(!interactLevel3()){
@@ -291,6 +314,14 @@ nextDialogue.addEventListener('click',()=>{
   closeDialogue();
 });
 
+
+// RANDOMIZATION PER SESSION
+function shuffleArray(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function pickRandom(arr){return arr[Math.floor(Math.random()*arr.length)];}
+const sessionQuestionCache={};
+function pickSessionQuestion(key,bank){if(!sessionQuestionCache[key])sessionQuestionCache[key]=pickRandom(bank);return sessionQuestionCache[key];}
+function shuffledOptions(options){return shuffleArray(options.map(x=>[x[0],x[1]]));}
+
 const QUIZZES = {
   library: {
     badge:'📚 Perpustakaan • C4',
@@ -346,16 +377,33 @@ const QUIZZES = {
   }
 };
 
+
+const LEVEL1_VARIANTS={
+ library:[
+  {badge:'📚 Perpustakaan • C4',title:'Tantangan Menghargai Perbedaan',caseText:'Seorang siswa menertawakan logat daerah temannya saat presentasi. Sikap apa yang paling sesuai dengan kepribadian Pancasila?',options:[['Ikut tertawa agar suasana tidak tegang.',false],['Menghentikan ejekan dan menghargai cara bicara teman.',true],['Meminta teman tidak berbicara lagi.',false],['Membiarkannya karena bukan urusan kita.',false]],correctText:'✅ Tepat! Menghargai martabat dan perbedaan sesuai dengan Pancasila.',nextStage:2},
+  {badge:'📚 Perpustakaan • C4',title:'Tantangan Sikap Toleran',caseText:'Dua teman berbeda pilihan kegiatan budaya. Salah satu memaksa temannya mengikuti pilihannya. Sikap paling tepat adalah...',options:[['Memaksa balik agar adil.',false],['Mendengarkan alasan masing-masing dan menghargai perbedaan.',true],['Tidak perlu berbicara lagi.',false],['Memilih pilihan yang paling populer.',false]],correctText:'✅ Benar. Toleransi berarti menghargai perbedaan tanpa memaksakan kehendak.',nextStage:2}],
+ teacher:[
+  {badge:'👨‍🏫 Pak Budi • Analisis',title:'Analisis Kerja Sama',caseText:'Dalam kerja kelompok, semua anggota mendapat tugas sesuai kesepakatan dan saling membantu. Mengapa perilaku tersebut mencerminkan Pancasila?',options:[['Karena tugas hanya perlu selesai.',false],['Karena mencerminkan gotong royong dan tanggung jawab bersama.',true],['Karena semua harus memiliki kemampuan sama.',false],['Karena ketua kelompok tidak perlu ikut bekerja.',false]],correctText:'✅ Tepat! Gotong royong tampak ketika anggota bekerja dan bertanggung jawab bersama.',nextStage:3},
+  {badge:'👨‍🏫 Pak Budi • Analisis',title:'Analisis Keadilan',caseText:'Ketua kelas membagi kesempatan presentasi secara merata kepada seluruh kelompok. Nilai apa yang paling terlihat?',options:[['Keadilan karena setiap kelompok mendapat kesempatan yang layak.',true],['Persaingan karena semua ingin tampil.',false],['Kebebasan tanpa aturan.',false],['Kepatuhan kepada ketua kelas.',false]],correctText:'✅ Benar. Pembagian kesempatan secara proporsional menunjukkan keadilan.',nextStage:3}],
+ park:[
+  {badge:'🌳 Taman • C5',title:'Evaluasi Pilihan',caseText:'Kelas memiliki dua ide kegiatan: pameran budaya atau pertunjukan kolaborasi. Apa cara terbaik memilihnya?',options:[['Bandingkan manfaat, keterlibatan siswa, dan kesesuaiannya dengan tujuan.',true],['Pilih yang paling murah saja.',false],['Ikuti ide teman paling populer.',false],['Serahkan seluruh keputusan kepada satu orang.',false]],correctText:'✅ Tepat! Evaluasi memerlukan kriteria yang jelas.',nextStage:4},
+  {badge:'🌳 Taman • C5',title:'Pilih Solusi Adil',caseText:'Ada siswa yang merasa tidak dilibatkan dalam persiapan kegiatan kelas. Apa solusi paling tepat?',options:[['Membiarkannya karena pembagian tugas sudah dibuat.',false],['Meninjau pembagian tugas dan memberi peran bermakna kepada semua anggota.',true],['Meminta siswa tersebut hanya menonton.',false],['Mengganti seluruh anggota kelompok.',false]],correctText:'✅ Benar. Solusi yang baik memperhatikan partisipasi dan keadilan.',nextStage:4}],
+ final:[
+  {badge:'🏫 Final Mission • C6',title:'Final Mission — Rencana Aksi',caseText:'Kelas ingin mengurangi kebiasaan saling mengejek perbedaan. Rencana mana yang paling lengkap?',options:[['Membuat kesepakatan kelas, menentukan penanggung jawab, waktu pelaksanaan, dan indikator perubahan perilaku.',true],['Memberi nasihat sekali lalu selesai.',false],['Menunggu masalah hilang sendiri.',false],['Mengandalkan guru untuk menyelesaikan semuanya.',false]],correctText:'🏆 Tepat! Rencana lengkap memuat tindakan, pelaksana, waktu, dan indikator.',nextStage:5},
+  {badge:'🏫 Final Mission • C6',title:'Final Mission — Aksi Kelas',caseText:'Kelas ingin menumbuhkan budaya musyawarah. Rancangan mana yang paling dapat dilaksanakan?',options:[['Menetapkan forum kelas mingguan, fasilitator, jadwal, dan indikator partisipasi.',true],['Meminta semua siswa selalu setuju.',false],['Membiarkan ketua mengambil semua keputusan.',false],['Mengadakan rapat hanya saat konflik besar.',false]],correctText:'🏆 Benar! Rancangan tersebut jelas, terukur, dan dapat dipantau.',nextStage:5}]
+};
+function getLevel1Question(id){return pickSessionQuestion('L1-'+id,[QUIZZES[id],...(LEVEL1_VARIANTS[id]||[])]);}
+
 function openQuiz(id){
   activeQuiz=id;
-  const q=QUIZZES[id];
+  const q=getLevel1Question(id);
   quizBadge.textContent=q.badge;
   quizTitle.textContent=q.title;
   quizCase.textContent=q.caseText;
   quizFeedback.textContent='';
   quizFeedback.className='quiz-feedback';
   quizOptions.innerHTML='';
-  q.options.forEach(([label,correct],i)=>{
+  shuffledOptions(q.options).forEach(([label,correct],i)=>{
     const btn=document.createElement('button');
     btn.className='quiz-option';
     btn.textContent=String.fromCharCode(65+i)+'. '+label;
@@ -383,6 +431,7 @@ function answerQuiz(btn,correct,q){
     btn.classList.add('wrong');
     quizFeedback.textContent='Belum tepat. Baca kembali situasi dan perhatikan nilai Pancasila yang paling relevan.';
     quizFeedback.className='quiz-feedback bad';
+    state.mistakes++;
     playSfx('wrong');
     setTimeout(()=>{
       buttons.forEach(b=>{b.disabled=false;b.classList.remove('wrong')});
@@ -510,6 +559,7 @@ function hitHazard(el){
   setTimeout(()=>el.classList.remove('hit'),400);
 
   l2Message.textContent=`⚠️ Hindari ${el.dataset.hazard}. Cari nilai positif di sekitarmu.`;
+  state.mistakes++;
   playSfx('wrong');
 
   // small pushback
@@ -641,9 +691,10 @@ function playSfx(name){
 
 function startBackgroundMusic(){
   if(musicTimer) return;
-  const pattern=[261.63,329.63,392.00,329.63,293.66,349.23,440.00,349.23];
   musicTimer=setInterval(()=>{
     if(!state.audioEnabled || !audioCtx) return;
+    const patterns={1:[261.63,329.63,392,329.63,293.66,349.23,440,349.23],2:[293.66,369.99,440,369.99,329.63,392,493.88,392],3:[220,293.66,349.23,293.66,246.94,329.63,392,329.63],4:[261.63,392,523.25,392,293.66,440,587.33,440]};
+    const pattern=patterns[state.currentLevel]||patterns[1];
     const f=pattern[musicStep%pattern.length];
     tone(f,.28,'triangle',.025);
     if(musicStep%2===0) tone(f/2,.4,'sine',.018,.02);
@@ -707,6 +758,20 @@ const LEVEL3_QUIZZES = {
   }
 };
 
+
+const LEVEL3_VARIANTS={
+ 1:[
+  {badge:'🗣️ Tahap 1 • Mendengar',title:'Dengar Sebelum Memutuskan',caseText:'Dua kelompok berbeda pendapat mengenai tema pentas kelas. Apa tindakan awal ketua kelas?',options:[['Memberi kesempatan kedua kelompok menjelaskan alasan dan kebutuhan mereka.',true],['Memilih usulan yang paling cepat.',false],['Mengikuti kelompok yang jumlahnya lebih banyak.',false],['Menunda pembahasan tanpa mendengar alasan.',false]],correctText:'✅ Benar. Mendengar semua pihak merupakan dasar musyawarah yang adil.'},
+  {badge:'🗣️ Tahap 1 • Mendengar',title:'Ruang untuk Pendapat',caseText:'Seorang anggota kelompok belum pernah menyampaikan pendapat karena selalu dipotong teman. Apa yang sebaiknya dilakukan fasilitator?',options:[['Memberinya kesempatan berbicara tanpa dipotong.',true],['Mengabaikannya agar rapat cepat selesai.',false],['Meminta ia mengikuti keputusan mayoritas.',false],['Mengakhiri diskusi.',false]],correctText:'✅ Tepat. Musyawarah membutuhkan kesempatan yang setara.'}],
+ 2:[
+  {badge:'⚖️ Tahap 2 • Evaluasi C5',title:'Bandingkan Dampak',caseText:'Pilihan A lebih cepat tetapi hanya melibatkan sedikit siswa. Pilihan B lebih lama tetapi melibatkan hampir seluruh kelas. Bagaimana menilainya?',options:[['Bandingkan manfaat, keterlibatan, waktu, dan tujuan kegiatan.',true],['Pilih yang paling cepat saja.',false],['Pilih yang disukai ketua.',false],['Tidak perlu membandingkan.',false]],correctText:'✅ Benar. Evaluasi membutuhkan beberapa kriteria yang relevan.'},
+  {badge:'⚖️ Tahap 2 • Evaluasi C5',title:'Nilai Dua Alternatif',caseText:'Satu alternatif menjaga tradisi lokal tetapi kurang melibatkan siswa. Alternatif lain memadukan budaya lokal dan modern serta memberi lebih banyak peran. Apa yang perlu dipertimbangkan?',options:[['Dampak pada persatuan, partisipasi, dan penghargaan terhadap budaya.',true],['Hanya selera pribadi.',false],['Siapa yang mengusulkan.',false],['Yang paling ramai di media sosial.',false]],correctText:'✅ Tepat. Dampak dan nilai Pancasila menjadi dasar evaluasi.'}],
+ 3:[
+  {badge:'🤝 Tahap 3 • Keputusan',title:'Kesepakatan Bersama',caseText:'Setelah membandingkan pilihan, kelas memilih solusi kolaboratif. Apa langkah berikutnya?',options:[['Menetapkan kesepakatan bersama dan membagi peran secara adil.',true],['Mengubah keputusan diam-diam.',false],['Membiarkan satu kelompok mengerjakan semuanya.',false],['Membatalkan keputusan.',false]],correctText:'✅ Benar. Kesepakatan perlu diikuti pembagian peran dan tanggung jawab.'},
+  {badge:'🤝 Tahap 3 • Keputusan',title:'Keputusan Bertanggung Jawab',caseText:'Diskusi telah menghasilkan pilihan yang dinilai paling adil. Bagaimana agar keputusan tersebut bertanggung jawab?',options:[['Tetapkan keputusan, pembagian tugas, dan mekanisme evaluasinya bersama.',true],['Cukup umumkan keputusan tanpa pembagian tugas.',false],['Serahkan seluruh pelaksanaan kepada ketua.',false],['Tidak perlu mengevaluasi hasilnya.',false]],correctText:'✅ Tepat. Keputusan yang baik perlu diterjemahkan menjadi tanggung jawab yang jelas.'}]
+};
+function getLevel3Question(step){return pickSessionQuestion('L3-'+step,[LEVEL3_QUIZZES[step],...(LEVEL3_VARIANTS[step]||[])]);}
+
 function nearDecision(el,threshold=90){ return rectDistanceBetween(player,el)<threshold; }
 
 function checkLevel3Interactions(){
@@ -733,7 +798,7 @@ function interactLevel3(){
 }
 
 function openLevel3Quiz(step){
-  const q=LEVEL3_QUIZZES[step];
+  const q=getLevel3Question(step);
   quizBadge.textContent=q.badge;
   quizTitle.textContent=q.title;
   quizCase.textContent=q.caseText;
@@ -741,7 +806,7 @@ function openLevel3Quiz(step){
   quizFeedback.className='quiz-feedback';
   quizOptions.innerHTML='';
 
-  q.options.forEach(([label,correct],i)=>{
+  shuffledOptions(q.options).forEach(([label,correct],i)=>{
     const btn=document.createElement('button');
     btn.className='quiz-option';
     btn.textContent=String.fromCharCode(65+i)+'. '+label;
@@ -758,6 +823,7 @@ function openLevel3Quiz(step){
         btn.classList.add('wrong');
         quizFeedback.textContent='Belum paling tepat. Perhatikan prinsip musyawarah, partisipasi, dan penghargaan terhadap semua pihak.';
         quizFeedback.className='quiz-feedback bad';
+        state.mistakes++;
         playSfx('wrong');
         setTimeout(()=>{
           buttons.forEach(b=>{b.disabled=false;b.classList.remove('wrong')});
@@ -819,19 +885,48 @@ function completeLevel3(){
   playSfx('level');
 }
 
-goLevel4Btn.addEventListener('click',()=>{
-  level3CompleteModal.classList.add('hidden');
-  openDialogue(
-    '🛠️ Level 4 — Kelas Aksi',
-    'Level 4 akan meminta kamu merancang tindakan nyata: tindakan, pelaksana, waktu, dan indikator keberhasilan. Gameplay penuh dapat kita lanjutkan pada versi berikutnya.'
-  );
-  document.querySelector('.level-top span').textContent='LEVEL 4';
-  document.querySelector('.level-top strong').textContent='Kelas Aksi • Rancang Tindakan Nyata';
-  progressBar.style.width='0%';
-  progressText.textContent='0%';
-  missionTitle.textContent='Level 4 • Kelas Aksi';
-  missionText.textContent='Preview Level 4 terbuka.';
-});
+goLevel4Btn.addEventListener('click', startLevel4);
+
+const LEVEL4_SCENARIOS=[
+ {id:'respect',title:'Kelas Saling Menghargai',text:'Beberapa siswa masih saling mengejek selera budaya dan cara berbicara teman. Kelas ingin membangun kebiasaan saling menghargai.',steps:{
+  1:{badge:'🎯 Tahap 1 • Tindakan C6',title:'Pilih Tindakan Utama',caseText:'Tindakan utama apa yang paling konkret untuk memulai perubahan?',options:[['Menyusun kesepakatan kelas anti-ejekan dan praktik komunikasi saling menghargai.',true],['Menunggu sampai siswa berhenti mengejek sendiri.',false],['Melarang semua perbedaan pendapat.',false],['Hanya menempel poster tanpa tindak lanjut.',false]]},
+  2:{badge:'👥 Tahap 2 • Pelaksana',title:'Tentukan Pelaksana',caseText:'Siapa yang sebaiknya terlibat agar tindakan dapat berjalan?',options:[['Seluruh siswa dengan koordinator ketua kelas dan pendampingan guru.',true],['Ketua kelas saja.',false],['Guru saja tanpa melibatkan siswa.',false],['Hanya siswa yang pernah mengejek.',false]]},
+  3:{badge:'🕒 Tahap 3 • Waktu',title:'Tentukan Waktu',caseText:'Waktu pelaksanaan mana yang paling realistis?',options:[['Mulai minggu ini, dipantau selama dua minggu, lalu dievaluasi.',true],['Suatu saat jika ada waktu.',false],['Hanya satu hari tanpa tindak lanjut.',false],['Setelah semester berakhir.',false]]},
+  4:{badge:'📊 Tahap 4 • Indikator',title:'Tentukan Indikator Keberhasilan',caseText:'Indikator apa yang paling dapat diamati?',options:[['Berkurangnya ejekan dan meningkatnya perilaku saling menghargai saat diskusi.',true],['Semua siswa selalu memiliki pendapat yang sama.',false],['Kelas menjadi lebih sepi.',false],['Tidak ada lagi kegiatan diskusi.',false]]}
+ }},
+ {id:'deliberation',title:'Budaya Musyawarah Kelas',text:'Keputusan kelompok sering didominasi beberapa siswa sehingga anggota lain kurang terlibat. Kelas ingin membangun musyawarah yang lebih adil.',steps:{
+  1:{badge:'🎯 Tahap 1 • Tindakan C6',title:'Pilih Tindakan Utama',caseText:'Tindakan apa yang paling tepat?',options:[['Membuat forum musyawarah dengan giliran bicara dan pencatatan usulan.',true],['Memberikan seluruh keputusan kepada ketua kelas.',false],['Melakukan voting tanpa diskusi.',false],['Menghindari pembahasan yang berbeda pendapat.',false]]},
+  2:{badge:'👥 Tahap 2 • Pelaksana',title:'Tentukan Pelaksana',caseText:'Siapa yang sebaiknya menjalankan forum tersebut?',options:[['Seluruh anggota kelas dengan fasilitator bergilir dan guru sebagai pendamping.',true],['Satu siswa paling aktif saja.',false],['Guru saja.',false],['Hanya pengurus kelas.',false]]},
+  3:{badge:'🕒 Tahap 3 • Waktu',title:'Tentukan Waktu',caseText:'Waktu mana yang paling terencana?',options:[['Dilaksanakan setiap ada keputusan kelompok dan dievaluasi setiap akhir minggu.',true],['Hanya jika terjadi pertengkaran.',false],['Tanpa jadwal yang jelas.',false],['Sekali setahun.',false]]},
+  4:{badge:'📊 Tahap 4 • Indikator',title:'Tentukan Indikator Keberhasilan',caseText:'Indikator mana yang menunjukkan forum berjalan baik?',options:[['Lebih banyak siswa menyampaikan pendapat dan keputusan disepakati dengan alasan yang jelas.',true],['Rapat berlangsung paling singkat.',false],['Ketua selalu menang dalam keputusan.',false],['Tidak ada pendapat yang berbeda.',false]]}
+ }},
+ {id:'culture',title:'Pentas Budaya yang Memersatukan',text:'Kelas ingin menyelenggarakan pentas yang tetap menghargai budaya lokal sekaligus memberi ruang kreativitas modern.',steps:{
+  1:{badge:'🎯 Tahap 1 • Tindakan C6',title:'Pilih Tindakan Utama',caseText:'Tindakan utama apa yang paling sesuai?',options:[['Merancang pertunjukan kolaboratif yang memadukan unsur lokal dan modern secara saling menghargai.',true],['Menghapus seluruh unsur modern.',false],['Menggunakan budaya populer saja.',false],['Membatalkan pentas karena ada perbedaan selera.',false]]},
+  2:{badge:'👥 Tahap 2 • Pelaksana',title:'Tentukan Pelaksana',caseText:'Siapa yang perlu terlibat?',options:[['Tim lintas minat: penampil, penata musik, dekorasi, dokumentasi, dan koordinator.',true],['Hanya siswa yang pandai menari.',false],['Guru yang mengerjakan semuanya.',false],['Satu kelompok budaya saja.',false]]},
+  3:{badge:'🕒 Tahap 3 • Waktu',title:'Tentukan Waktu',caseText:'Jadwal mana yang paling memungkinkan?',options:[['Perencanaan hari pertama, latihan bertahap selama satu minggu, lalu evaluasi sebelum tampil.',true],['Latihan hanya sesaat sebelum tampil.',false],['Tidak perlu jadwal.',false],['Menunggu semua siswa memiliki waktu kosong bersamaan.',false]]},
+  4:{badge:'📊 Tahap 4 • Indikator',title:'Tentukan Indikator Keberhasilan',caseText:'Indikator keberhasilan yang paling tepat adalah...',options:[['Semua tim terlibat, unsur budaya lokal dihargai, dan pertunjukan selesai sesuai kesepakatan.',true],['Pertunjukan mendapat tepuk tangan paling keras.',false],['Hanya satu kelompok yang tampil dominan.',false],['Tidak ada unsur budaya yang berbeda.',false]]}
+ }}
+];
+
+function startLevel4(){
+ level3CompleteModal.classList.add('hidden'); state.currentLevel=4; state.level4Step=0; state.totalXp=150; state.level4Plan={}; state.level4Scenario=pickRandom(LEVEL4_SCENARIOS);
+ gameArea.classList.remove('level3-active'); gameArea.classList.add('level4-active'); level3Scene.classList.add('hidden'); level4Scene.classList.remove('hidden');
+ document.querySelector('.level-top span').textContent='LEVEL 4'; document.querySelector('.level-top strong').textContent='Kelas Aksi • Rancang Tindakan Nyata'; progressBar.style.width='0%'; progressText.textContent='0%'; xpText.textContent='150 XP';
+ scenarioTitle.textContent=state.level4Scenario.title; scenarioText.textContent=state.level4Scenario.text; missionTitle.textContent='Level 4 • Kelas Aksi'; missionText.textContent='Lengkapi 4 unsur rancangan tindakan: tindakan, pelaksana, waktu, dan indikator.'; l4DoneText.textContent='0'; l4Message.textContent='🛠️ Mulailah dari stasiun 1: Tindakan.';
+ document.querySelectorAll('.action-station').forEach((el,i)=>{el.classList.remove('completed');el.classList.toggle('locked',i!==0);const s=el.querySelector('small');s.textContent=i===0?'Dekati lalu E / AKSI':`Selesaikan tahap ${i}`;});
+ state.x=18;state.y=68;updatePlayer();
+ localStorage.setItem('pancaquest_adventure_progress',JSON.stringify({currentLevel:4,level1Completed:true,level2Completed:true,level3Completed:true,level4Completed:false,scenario:state.level4Scenario.id,totalXp:150,updated_at:new Date().toISOString()})); playSfx('level');
+}
+function nearActionStation(el,t=100){return rectDistanceBetween(player,el)<t;}
+function checkLevel4Interactions(){if(state.currentLevel!==4)return;const step=state.level4Step+1,el=document.querySelector(`.action-station[data-action-step="${step}"]`);if(!el)return;l4Message.textContent=nearActionStation(el,105)?`✨ Stasiun ${step} siap. Tekan E / Space / AKSI.`:`🛠️ Pergi ke stasiun ${step}: ${el.querySelector('b').textContent}.`;}
+function interactLevel4(){const step=state.level4Step+1,el=document.querySelector(`.action-station[data-action-step="${step}"]`);if(!el||el.classList.contains('locked'))return false;if(nearActionStation(el,115)){openLevel4Quiz(step);return true;}return false;}
+function openLevel4Quiz(step){const q=state.level4Scenario.steps[step];quizBadge.textContent=q.badge;quizTitle.textContent=q.title;quizCase.textContent=q.caseText;quizFeedback.textContent='';quizFeedback.className='quiz-feedback';quizOptions.innerHTML='';shuffledOptions(q.options).forEach(([label,correct],i)=>{const btn=document.createElement('button');btn.className='quiz-option';btn.textContent=String.fromCharCode(65+i)+'. '+label;btn.addEventListener('click',()=>{const buttons=[...quizOptions.querySelectorAll('.quiz-option')];buttons.forEach(b=>b.disabled=true);if(correct){btn.classList.add('correct');quizFeedback.textContent='✅ Pilihan tepat. Unsur rancangan berhasil ditambahkan.';quizFeedback.className='quiz-feedback good';state.level4Plan[step]=label;playSfx('correct');setTimeout(()=>completeLevel4Step(step),900);}else{btn.classList.add('wrong');state.mistakes++;quizFeedback.textContent='Belum paling tepat. Pilih jawaban yang paling konkret, realistis, dan dapat diamati.';quizFeedback.className='quiz-feedback bad';playSfx('wrong');setTimeout(()=>{buttons.forEach(b=>{b.disabled=false;b.classList.remove('wrong')});quizFeedback.textContent='Coba lagi.';},900);}});quizOptions.appendChild(btn);});quizModal.classList.remove('hidden');playSfx('interact');}
+function completeLevel4Step(step){quizModal.classList.add('hidden');const cur=document.querySelector(`.action-station[data-action-step="${step}"]`);cur?.classList.add('completed');cur?.classList.remove('locked');if(cur?.querySelector('small'))cur.querySelector('small').textContent='✅ Selesai';state.level4Step=step;l4DoneText.textContent=String(step);const pct=Math.round(step/4*100);progressBar.style.width=pct+'%';progressText.textContent=pct+'%';state.totalXp=150+Math.round(step*25/4);xpText.textContent=state.totalXp+' XP';const next=document.querySelector(`.action-station[data-action-step="${step+1}"]`);if(next){next.classList.remove('locked');next.querySelector('small').textContent='Dekati lalu E / AKSI';}else{state.totalXp=175;xpText.textContent='175 XP';progressBar.style.width='100%';progressText.textContent='100%';setTimeout(completeAdventure,700);}}
+function calculateFinalScore(){return Math.max(70,100-state.mistakes*4);}
+function badgeFromScore(s){if(s>=95)return '🏅 Pancasila Pathfinder';if(s>=85)return '💡 Civic Problem Solver';if(s>=75)return '🔎 Value Detective';return '🌱 Pancasila Explorer';}
+function completeAdventure(){const score=calculateFinalScore(),badge=badgeFromScore(score);missionTitle.textContent='PancaQuest Selesai!';missionText.textContent='Seluruh level selesai. Simpan hasil untuk kembali ke PancaPath.';finalBadge.textContent=badge;finalAdventureXp.textContent='175 XP';finalScore.textContent=score+' / 100';finalScenario.textContent=state.level4Scenario.title;finalAction.textContent=state.level4Plan[1]||'—';finalActor.textContent=state.level4Plan[2]||'—';finalTime.textContent=state.level4Plan[3]||'—';finalIndicator.textContent=state.level4Plan[4]||'—';const q={completed:true,xp:score,badge,adventureXp:175,mistakes:state.mistakes,scenario:state.level4Scenario.title,plan:{action:state.level4Plan[1],actor:state.level4Plan[2],time:state.level4Plan[3],indicator:state.level4Plan[4]},route:'pancaquest-adventure-v1.6',completed_at:new Date().toISOString()};localStorage.setItem('pancapath_quest',JSON.stringify(q));localStorage.setItem('pancaquest_adventure_progress',JSON.stringify({currentLevel:4,level1Completed:true,level2Completed:true,level3Completed:true,level4Completed:true,totalXp:175,normalizedScore:score,badge,updated_at:new Date().toISOString()}));adventureCompleteModal.classList.remove('hidden');playSfx('level');}
+saveReturnBtn.addEventListener('click',()=>{const standalone=location.pathname.toLowerCase().includes('standalone');if(standalone){adventureCompleteModal.classList.add('hidden');openDialogue('✅ Data Tersimpan','Hasil PancaQuest sudah tersimpan di perangkat. Saat dipasang di PancaPath, tombol ini kembali ke halaman utama.');}else window.location.href='../index.html#mission';});
+restartRandomBtn.addEventListener('click',()=>location.reload());
 
 const soundBtn=document.getElementById('soundBtn');
 soundBtn.addEventListener('click',e=>{
@@ -859,10 +954,7 @@ function togglePause(){
 }
 pauseBtn.addEventListener('click',togglePause);
 resumeBtn.addEventListener('click',()=>{state.paused=false;pauseModal.classList.add('hidden')});
-resetBtn.addEventListener('click',()=>{
-  localStorage.removeItem('pancaquest_level1');
-  location.reload();
-});
+resetBtn.addEventListener('click',()=>{localStorage.removeItem('pancaquest_level1');localStorage.removeItem('pancaquest_adventure_progress');localStorage.removeItem('pancapath_quest');location.reload();});
 
 fullscreenBtn.addEventListener('click',()=>{
   if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();

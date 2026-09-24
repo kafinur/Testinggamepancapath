@@ -14,7 +14,7 @@
         <div class="brand-mark">📘</div>
         <div>
           <h1>PancaQuest <span>Adventure</span></h1>
-          <p>PancaPath • Kepribadian Bangsa • v1.5</p>
+          <p>PancaPath • Kepribadian Bangsa • v1.6</p>
         </div>
       </div>
 
@@ -268,6 +268,21 @@
         </div>
       </section>
 
+
+      <!-- LEVEL 4 REAL SCENE -->
+      <section id="level4Scene" class="level4-scene hidden" aria-label="Level 4 Kelas Aksi">
+        <div class="l4-wall"></div>
+        <div class="l4-board"><small>LEVEL 4 • C6</small><strong>KELAS AKSI</strong><span>Rancang Tindakan Nyata</span></div>
+        <div class="l4-window w1"></div><div class="l4-window w2"></div><div class="l4-cabinet"></div><div class="l4-plant"></div>
+        <div id="scenarioCard" class="scenario-card"><small>SKENARIO MISI</small><strong id="scenarioTitle">Memuat skenario...</strong><p id="scenarioText">...</p></div>
+        <button class="action-station as1" data-action-step="1"><span>1</span><b>🎯 Tindakan</b><small>Pilih tindakan utama</small></button>
+        <button class="action-station as2 locked" data-action-step="2"><span>2</span><b>👥 Pelaksana</b><small>Selesaikan tahap 1</small></button>
+        <button class="action-station as3 locked" data-action-step="3"><span>3</span><b>🕒 Waktu</b><small>Selesaikan tahap 2</small></button>
+        <button class="action-station as4 locked" data-action-step="4"><span>4</span><b>📊 Indikator</b><small>Selesaikan tahap 3</small></button>
+        <div class="l4-progress-card"><span>Rancangan lengkap</span><strong><span id="l4Done">0</span>/4</strong></div>
+        <div id="l4Message" class="l4-message">🛠️ Mulailah dari stasiun 1: Tindakan.</div>
+      </section>
+
       <!-- DIALOGUE -->
       <aside id="dialogue" class="dialogue-card hidden" aria-live="polite">
         <div class="dialogue-avatar">👧</div>
@@ -384,6 +399,17 @@
         <small class="next-note">Level 4: Kelas Aksi • Rancang Tindakan Nyata</small>
       </div>
     </div>
+
+
+    <!-- PANCAQUEST COMPLETE -->
+    <div id="adventureCompleteModal" class="modal hidden"><div class="modal-backdrop"></div><div class="adventure-complete-card">
+      <div class="final-confetti">✨ 🏆 ✨</div><span class="complete-kicker">PANCAQUEST ADVENTURE COMPLETE</span><h2>Misi Kepribadian Pancasila Selesai</h2>
+      <div class="final-badge" id="finalBadge">🏅 Pancasila Pathfinder</div>
+      <div class="final-grid"><div><small>Adventure XP</small><strong id="finalAdventureXp">175 XP</strong></div><div><small>Skor PancaQuest</small><strong id="finalScore">100 / 100</strong></div></div>
+      <div class="plan-summary"><h3>Rancangan Aksi Kamu</h3><p><b>Skenario:</b> <span id="finalScenario">—</span></p><p><b>Tindakan:</b> <span id="finalAction">—</span></p><p><b>Pelaksana:</b> <span id="finalActor">—</span></p><p><b>Waktu:</b> <span id="finalTime">—</span></p><p><b>Indikator:</b> <span id="finalIndicator">—</span></p></div>
+      <div class="final-actions"><button id="saveReturnBtn" class="next-level-btn">Simpan & Kembali ke PancaPath</button><button id="restartRandomBtn" class="secondary-game-btn">↻ Main Ulang — Acak Soal Baru</button></div>
+      <small class="random-note">Soal dan urutan pilihan akan diacak kembali saat permainan dimulai ulang.</small>
+    </div></div>
 
     <!-- PAUSE MODAL -->
     <div id="pauseModal" class="modal hidden">

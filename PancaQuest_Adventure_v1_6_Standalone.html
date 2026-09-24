@@ -1,0 +1,1854 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0a2a7a" />
+  <title>PancaQuest Adventure — PancaPath</title>
+  <style>
+:root{
+  --blue:#0b2f8d;
+  --blue2:#183f9f;
+  --gold:#ffcc32;
+  --ink:#0d1b3b;
+  --white:#ffffff;
+  --grass:#7fd25f;
+  --grass2:#58b844;
+  --road:#dfc899;
+  --shadow:0 18px 40px rgba(17,44,98,.22);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#07152f;color:#fff;overflow:hidden}
+button{font:inherit}
+.app-shell{height:100vh;display:grid;grid-template-rows:72px 1fr;background:linear-gradient(#0c2e82,#06172f)}
+.topbar{
+  display:grid;grid-template-columns:1fr minmax(360px,620px) 1fr;align-items:center;gap:18px;
+  padding:8px 20px;background:linear-gradient(180deg,#0c2f8e,#082267);box-shadow:0 4px 20px rgba(0,0,0,.25);z-index:50
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-mark{width:46px;height:46px;border-radius:14px;background:linear-gradient(145deg,#ffe47b,#ffc107);display:grid;place-items:center;font-size:26px;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.brand h1{font-size:17px;margin:0;font-weight:900;white-space:nowrap}
+.brand h1 span{color:var(--gold)}
+.brand p{margin:2px 0 0;color:#c9d8ff;font-size:11px}
+.level-card{background:rgba(4,18,54,.65);border:1px solid rgba(255,255,255,.13);border-radius:22px;padding:8px 18px;box-shadow:inset 0 1px rgba(255,255,255,.08)}
+.level-top{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.level-top span{font-size:11px;font-weight:900;color:var(--gold)}
+.level-top strong{font-size:13px;text-align:center}
+.level-top b{font-size:12px}
+.progress-track{height:7px;background:rgba(255,255,255,.18);border-radius:99px;overflow:hidden;margin-top:6px}
+.progress-track>div{height:100%;width:25%;background:linear-gradient(90deg,#2bd66f,#42e3bb);border-radius:inherit;transition:.4s}
+.top-actions{display:flex;justify-content:flex-end;gap:8px}
+.icon-btn{width:40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.09);color:white;cursor:pointer;font-size:17px}
+.icon-btn:hover{background:rgba(255,255,255,.16)}
+
+.game-area{
+  position:relative;overflow:hidden;
+  background:
+    radial-gradient(circle at 12% 8%,rgba(255,255,255,.18) 0 2px,transparent 3px),
+    radial-gradient(circle at 83% 20%,rgba(255,255,255,.16) 0 2px,transparent 3px),
+    linear-gradient(180deg,#8cdb6d 0 70%,#7ccf5c 70%);
+  background-size:160px 160px,190px 190px,auto;
+}
+.game-area:after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.08),transparent 30%,rgba(5,32,62,.06));
+}
+.sky-glow{position:absolute;inset:0 auto auto 0;width:100%;height:160px;background:linear-gradient(180deg,rgba(255,255,255,.12),transparent);pointer-events:none}
+.hud{position:absolute;top:14px;z-index:30;background:rgba(7,31,72,.82);border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 30px rgba(0,0,0,.22);backdrop-filter:blur(8px)}
+.hearts{left:16px;border-radius:16px;padding:9px 13px;display:flex;gap:5px}
+.xp{right:16px;border-radius:16px;padding:10px 16px;color:#ffe375}
+
+.path-vertical{position:absolute;left:46%;top:0;width:10%;height:100%;background:linear-gradient(90deg,#d9c399,#edd9b6,#d6be8d);box-shadow:inset 12px 0 18px rgba(132,91,37,.07),inset -12px 0 18px rgba(132,91,37,.07)}
+.path-horizontal{position:absolute;left:0;top:59%;width:100%;height:14%;background:linear-gradient(#d5bd8f,#ead4aa,#d7be8d)}
+.tactile{position:absolute;background:#eabf38;opacity:.7;z-index:3}
+.tactile.vertical{left:50.3%;top:0;width:1.1%;height:100%}
+.tactile.horizontal{left:0;top:65.2%;width:100%;height:1.2%}
+
+.scene-card{position:absolute;z-index:5;filter:drop-shadow(0 14px 16px rgba(22,65,30,.15))}
+.school{left:33%;top:8%;width:39%;height:29%;background:linear-gradient(#ffe0a9,#f2bd71);border:2px solid #c48b4e;border-radius:18px}
+.roof{position:absolute;left:-5%;right:-5%;top:-19%;height:35%;background:linear-gradient(145deg,#e5583b,#b93426);clip-path:polygon(12% 100%,25% 28%,50% 0,74% 28%,88% 100%)}
+.school-logo{position:absolute;left:50%;top:-9%;transform:translateX(-50%);width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#184fa4;color:#fff;border:4px solid #f7d16e;font-size:22px}
+.school-title{position:absolute;left:50%;top:18%;transform:translateX(-50%);background:#fff1d2;color:#8d4a1e;font-weight:900;padding:4px 22px;border-radius:10px;box-shadow:0 4px 10px rgba(123,69,24,.15)}
+.windows{position:absolute;left:12%;right:12%;top:40%;display:flex;justify-content:space-between}
+.windows i{width:14%;height:55px;background:linear-gradient(#7dc4ff,#4c94d4);border:5px solid #f7ead2;box-shadow:inset 0 8px 12px rgba(255,255,255,.22)}
+.door{position:absolute;left:45%;bottom:0;width:10%;height:34%;background:linear-gradient(90deg,#9a6035,#74401f);border-radius:5px 5px 0 0}
+.banner{position:absolute;top:31%;width:80px;padding:7px;background:#10479c;color:#fff;font-size:9px;line-height:1.25;text-align:center;border-radius:3px;box-shadow:0 4px 10px rgba(0,0,0,.15)}
+.banner.left{left:3%}.banner.right{right:3%}
+
+.library{left:7%;top:33%;width:18%;height:17%;background:linear-gradient(#e9f2ff,#cbdcf2);border:2px solid #6c8bae;border-radius:14px}
+.library-sign{position:absolute;left:8%;right:8%;top:12%;padding:5px 8px;text-align:center;border-radius:8px;background:#fff;color:#233d73;font-weight:900;font-size:12px}
+.shelves{position:absolute;left:12%;right:12%;bottom:14%;display:flex;gap:6px}
+.shelves span{flex:1;height:50px;border-radius:4px;background:repeating-linear-gradient(90deg,#85592e 0 7px,#d95d4c 7px 10px,#4c78b9 10px 13px,#8c642f 13px 19px)}
+
+.park{right:6%;top:31%;width:17%;height:20%;background:linear-gradient(#c9f3d7,#aee5c3);border:2px solid #4b9c68;border-radius:16px}
+.park-sign{position:absolute;left:12%;right:12%;bottom:12%;padding:7px;text-align:center;background:#fff;color:#18513b;border-radius:9px;font-weight:900;font-size:12px}
+.fountain{position:absolute;left:50%;top:10%;transform:translateX(-50%);width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,#8fe5ff 0 28%,#338fbd 30% 46%,#d8d8d8 48% 65%,#b1b1b1 66%);box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.water{position:absolute;left:50%;top:10%;width:16px;height:35px;transform:translateX(-50%);border-radius:50%;background:linear-gradient(#d8fbff,#53c4ef);filter:drop-shadow(0 4px 3px rgba(42,144,192,.2))}
+
+.tree{position:absolute;width:62px;height:86px;z-index:4}
+.tree:before{content:"";position:absolute;left:25px;bottom:0;width:13px;height:36px;background:#8e5b35;border-radius:4px}
+.tree:after{content:"";position:absolute;left:5px;top:0;width:54px;height:54px;border-radius:50%;background:radial-gradient(circle at 33% 30%,#61cb72 0 23%,#2fa950 24% 55%,#228c42 56%);box-shadow:-18px 12px 0 -7px #37ad53,18px 13px 0 -8px #279143}
+.t1{left:17%;top:10%}.t2{right:14%;top:9%}.t3{left:12%;bottom:8%}.t4{right:18%;bottom:10%}.t5{right:4%;top:45%}
+
+.lamp{position:absolute;width:10px;height:80px;background:#2d3647;z-index:7;border-radius:4px}
+.lamp:after{content:"";position:absolute;left:-10px;top:-10px;width:30px;height:25px;border-radius:8px;background:radial-gradient(circle,#fffbd3 0 25%,#ffd96a 30% 46%,#35405d 48%);box-shadow:0 0 20px #ffe28a}
+.l1{left:29%;bottom:16%}.l2{right:26%;bottom:9%}
+.bench{position:absolute;right:11%;top:22%;width:80px;height:28px;border-bottom:9px solid #7d4d2e;border-top:8px solid #9a6538;z-index:6;box-shadow:0 12px 0 -6px #633b25}
+.value-sign{position:absolute;left:5%;bottom:14%;z-index:8;display:grid;gap:3px;transform:rotate(-2deg)}
+.value-sign span{background:#704728;color:#fff;padding:4px 12px;border-radius:3px;font-size:11px;font-weight:800;box-shadow:0 3px 6px rgba(0,0,0,.18)}
+
+.character{position:relative;width:58px;height:105px;filter:drop-shadow(0 10px 5px rgba(0,0,0,.16))}
+.char-shadow{position:absolute;left:8px;bottom:-2px;width:42px;height:12px;background:rgba(0,0,0,.22);border-radius:50%;filter:blur(2px)}
+.head{position:absolute;left:11px;top:0;width:38px;height:42px;z-index:6}
+.face{position:absolute;left:4px;top:8px;width:31px;height:31px;border-radius:46% 46% 48% 48%;background:radial-gradient(circle at 42% 28%,#fff4e8 0 20%,#f6c9a5 45% 100%);box-shadow:inset -3px -3px 5px rgba(157,92,53,.15)}
+.hair.back{position:absolute;inset:1px 1px 0;background:linear-gradient(145deg,#3b271f,#16110f);border-radius:55% 55% 40% 40%}
+.hair.front{position:absolute;left:1px;right:1px;top:0;height:17px;background:linear-gradient(#3a261e,#17110f);border-radius:60% 58% 35% 24%;clip-path:polygon(0 0,100% 0,100% 58%,78% 40%,68% 82%,54% 48%,42% 75%,27% 42%,14% 70%,0 50%)}
+.eye{position:absolute;top:11px;width:3px;height:5px;background:#182030;border-radius:50%;animation:blink 4.6s infinite}
+.e1{left:8px}.e2{right:8px}
+.mouth{position:absolute;left:13px;top:21px;width:7px;height:4px;border-bottom:2px solid #a5483d;border-radius:0 0 10px 10px}
+.mouth.smile{width:8px;height:5px}
+.blush{position:absolute;top:18px;width:5px;height:2px;border-radius:50%;background:#ee8d8d;opacity:.55}.b1{left:3px}.b2{right:3px}
+@keyframes blink{0%,46%,48%,100%{transform:scaleY(1)}47%{transform:scaleY(.08)}}
+
+.body{position:absolute;left:10px;top:38px;width:40px;height:61px}
+.uniform:before{content:"";position:absolute;left:6px;top:0;width:28px;height:38px;border-radius:7px 7px 10px 10px;background:linear-gradient(145deg,#fff,#e8f0f8);box-shadow:inset -5px -3px 8px rgba(36,76,121,.08)}
+.uniform:after{content:"";position:absolute;left:7px;top:30px;width:26px;height:16px;background:linear-gradient(#1d4a8f,#163671);border-radius:3px 3px 8px 8px}
+.tie{position:absolute;left:18px;top:4px;width:5px;height:18px;background:#e44946;clip-path:polygon(0 0,100% 0,78% 100%,50% 82%,22% 100%) ;z-index:3}
+.arm{position:absolute;top:7px;width:8px;height:32px;background:linear-gradient(#f8d3b6,#d99a72);border-radius:7px;z-index:1;transform-origin:50% 4px}
+.a1{left:0;transform:rotate(8deg)}.a2{right:0;transform:rotate(-8deg)}
+.wave{animation:wave 1.2s ease-in-out infinite alternate}
+@keyframes wave{to{transform:rotate(-60deg) translateY(-3px)}}
+.leg{position:absolute;bottom:0;width:10px;height:26px;background:linear-gradient(#223f71,#102d5b);border-radius:4px}
+.g1{left:9px}.g2{right:9px}
+.backpack{position:absolute;left:1px;top:10px;width:11px;height:25px;border-radius:6px;background:linear-gradient(#163d86,#0d2760);z-index:0}
+
+.girl .hair.back{inset:0 -3px -5px;background:linear-gradient(#3b201d,#1c1211);border-radius:58% 58% 35% 35%}
+.girl .uniform:after{height:19px;bottom:0;top:28px;background:linear-gradient(#253f7e,#192d65)}
+.teacher .uniform:before{background:linear-gradient(#ead0a8,#bd9363)}
+.teacher .uniform:after{background:linear-gradient(#4d382d,#2e211c)}
+.glasses{position:absolute;left:4px;top:8px;width:24px;height:8px;border-top:2px solid #26334a}
+.glasses:before,.glasses:after{content:"";position:absolute;top:-3px;width:9px;height:8px;border:2px solid #26334a;border-radius:50%}
+.glasses:before{left:0}.glasses:after{right:0}
+
+.player{position:absolute;left:47%;top:69%;z-index:20;width:60px;height:110px;transition:filter .18s}
+.player.moving .character{animation:walkBob .32s ease-in-out infinite alternate}
+.player.moving .g1{animation:legWalk .32s ease-in-out infinite alternate}
+.player.moving .g2{animation:legWalk .32s ease-in-out infinite alternate-reverse}
+@keyframes walkBob{to{transform:translateY(-3px)}}
+@keyframes legWalk{to{transform:translateY(-4px) rotate(7deg)}}
+.interaction-ring{position:absolute;left:1px;bottom:-7px;width:58px;height:19px;border:3px solid rgba(255,234,109,.85);border-radius:50%;box-shadow:0 0 18px #ffe75c;animation:ringPulse 1.2s ease-in-out infinite alternate}
+@keyframes ringPulse{to{transform:scale(1.08);opacity:.6}}
+
+.npc{position:absolute;z-index:18}
+.npc-nadia{right:31%;top:56%}.npc-teacher{right:17%;bottom:11%}
+.name-tag{position:absolute;left:50%;top:-25px;transform:translateX(-50%);padding:4px 9px;border-radius:8px;background:rgba(18,39,78,.88);font-size:11px;font-weight:900;white-space:nowrap}
+.quest-mark{position:absolute;left:50%;top:-58px;transform:translateX(-50%);font-size:30px;font-weight:900;color:#ffcc27;text-shadow:0 2px 0 #ad6e00,0 0 12px #ffe799;animation:bounce 1s ease-in-out infinite alternate}
+@keyframes bounce{to{transform:translate(-50%,-8px)}}
+.talk-bubble{position:absolute;left:50%;top:-47px;transform:translateX(-50%);background:#fff;color:#27304b;border-radius:18px;padding:7px 12px;font-weight:900}
+
+.dialogue-card{
+  position:absolute;right:17%;top:49%;z-index:40;width:min(430px,42vw);display:flex;gap:12px;align-items:flex-start;
+  padding:15px 17px;background:rgba(255,255,255,.96);color:#1b2a4b;border-radius:20px;
+  border:3px solid #d9e7ff;box-shadow:0 18px 30px rgba(6,34,78,.2)
+}
+.dialogue-card:after{content:"";position:absolute;left:-18px;bottom:22px;border:10px solid transparent;border-right-color:#fff}
+.dialogue-avatar{font-size:38px}
+.dialogue-content strong{display:block;color:#4b5ccc;margin-bottom:3px}
+.dialogue-content p{margin:0 0 8px;font-size:13px;line-height:1.45}
+.dialogue-content button{background:#2457bd;color:#fff;border:0;border-radius:9px;padding:7px 12px;font-weight:800;cursor:pointer}
+
+.mission-card{
+  position:absolute;left:18px;bottom:18px;z-index:35;width:330px;display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;
+  padding:13px 14px;background:linear-gradient(145deg,rgba(20,57,141,.96),rgba(9,34,96,.96));border:2px solid #4b73db;border-radius:18px;box-shadow:var(--shadow)
+}
+.mission-icon{font-size:27px}.mission-card small{display:block;color:#ffd75e;font-weight:900}.mission-card strong{display:block;font-size:13px}.mission-card p{margin:3px 0 0;font-size:11px;color:#dbe6ff}
+.mission-card button{width:40px;height:40px;border:0;border-radius:50%;background:#2b5ac6;color:#fff;font-size:22px;cursor:pointer}
+
+.mini-map{position:absolute;right:18px;bottom:18px;z-index:35;width:220px;padding:9px;background:rgba(15,47,116,.95);border:2px solid #446fdb;border-radius:18px;box-shadow:var(--shadow)}
+.mini-head{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:12px;margin-bottom:7px}.mini-head button{border:0;background:rgba(255,255,255,.12);color:#fff;border-radius:6px;cursor:pointer}
+.mini-world{position:relative;height:130px;border-radius:12px;background:linear-gradient(90deg,#76c85f 0 42%,#dcc69b 42% 58%,#76c85f 58%);overflow:hidden}
+.mini-world:after{content:"";position:absolute;left:0;right:0;top:57%;height:18%;background:#d7be91}
+.mini-school,.mini-library,.mini-park,.mini-player{position:absolute;z-index:2}
+.mini-school{left:44%;top:9%;font-size:28px}.mini-library{left:15%;top:45%}.mini-park{right:14%;top:42%}.mini-player{left:49%;top:70%;color:#1f62ff;font-size:18px;text-shadow:0 0 8px #fff}
+
+.desktop-hint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:32;display:flex;gap:12px;padding:8px 12px;border-radius:12px;background:rgba(9,28,69,.72);font-size:10px;color:#d7e3ff;backdrop-filter:blur(6px)}
+kbd{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-right:2px;padding:0 4px;border-radius:5px;background:#eef4ff;color:#102653;font-weight:900;border-bottom:2px solid #a9b8d7}
+
+.mobile-controls{position:absolute;left:0;right:0;bottom:18px;z-index:60;display:none;justify-content:space-between;align-items:flex-end;padding:0 24px;pointer-events:none}
+.joystick{width:116px;height:116px;border-radius:50%;background:rgba(7,28,70,.38);border:2px solid rgba(255,255,255,.5);box-shadow:inset 0 0 20px rgba(255,255,255,.15);pointer-events:auto;touch-action:none}
+.joystick-knob{position:absolute;width:54px;height:54px;border-radius:50%;background:linear-gradient(#fff,#cad8ee);box-shadow:0 8px 16px rgba(0,0,0,.25);transform:translate(30px,30px)}
+.action-btn{width:88px;height:88px;border-radius:50%;border:4px solid rgba(255,255,255,.6);background:linear-gradient(#3268d2,#183c92);color:white;font-size:29px;box-shadow:0 12px 25px rgba(0,0,0,.25);pointer-events:auto}
+.action-btn small{display:block;font-size:9px;font-weight:900}
+
+.modal{position:fixed;inset:0;z-index:100;display:grid;place-items:center}
+.modal-backdrop{position:absolute;inset:0;background:rgba(2,8,25,.68);backdrop-filter:blur(5px)}
+.modal-card{position:relative;z-index:2;width:min(360px,90vw);padding:24px;border-radius:22px;background:#0e2e75;border:1px solid rgba(255,255,255,.18);box-shadow:0 30px 80px rgba(0,0,0,.35);text-align:center}
+.modal-card button{display:block;width:100%;margin:8px 0;padding:12px;border-radius:11px;border:1px solid rgba(255,255,255,.13);background:#2359bd;color:white;font-weight:800;cursor:pointer}
+.hidden{display:none!important}
+
+@media (max-width:900px){
+  .topbar{grid-template-columns:1fr auto;gap:10px;height:64px;padding:6px 10px}
+  .level-card{position:absolute;left:50%;top:68px;transform:translateX(-50%);z-index:80;width:min(80vw,520px)}
+  .brand p{display:none}.brand h1{font-size:14px}.top-actions{grid-column:2}
+  .school{left:28%;width:49%}.library{left:4%;width:21%}.park{right:3%;width:20%}
+  .dialogue-card{right:7%;top:48%;width:54vw}
+  .desktop-hint{display:none}.mobile-controls{display:flex}
+  .mission-card{width:280px;bottom:145px}.mini-map{display:none}
+}
+@media (max-width:620px){
+  html,body{overflow:auto}.app-shell{min-height:100vh;height:auto;grid-template-rows:62px 720px}
+  .game-area{min-height:720px}
+  .brand-mark{width:38px;height:38px}.brand h1{font-size:12px}
+  .top-actions .icon-btn{width:34px;height:34px}
+  .school{left:22%;top:10%;width:60%;height:24%}
+  .library{left:3%;top:37%;width:27%}.park{right:2%;top:37%;width:26%}
+  .npc-nadia{right:22%;top:54%}.npc-teacher{right:10%;bottom:13%}
+  .dialogue-card{left:6%;right:6%;top:auto;bottom:235px;width:auto}
+  .mission-card{left:10px;right:10px;bottom:130px;width:auto}
+  .hearts{top:62px}.xp{top:62px}
+}
+
+
+/* ===== v1.1 interactive quest locations ===== */
+.location-quest{
+  position:absolute;left:50%;top:-38px;transform:translateX(-50%);
+  z-index:40;font-size:28px;font-weight:1000;color:#ffd43b;
+  text-shadow:0 2px 0 #8b5b00,0 0 14px rgba(255,223,69,.95);
+  animation:locBounce .85s ease-in-out infinite alternate;
+}
+@keyframes locBounce{to{transform:translate(-50%,-7px) scale(1.08)}}
+
+.quiz-card{
+  position:relative;z-index:2;width:min(620px,92vw);padding:24px;border-radius:24px;
+  background:linear-gradient(160deg,#ffffff,#eef5ff);
+  color:#152344;border:2px solid #cfe0ff;box-shadow:0 30px 90px rgba(0,0,0,.36)
+}
+.quiz-head{display:flex;justify-content:space-between;align-items:center}
+.quiz-head span{font-size:.75rem;font-weight:900;color:#1d4ed8;background:#dbeafe;padding:7px 10px;border-radius:999px}
+.quiz-close{width:36px;height:36px;border-radius:50%;border:0;background:#e8eef8;color:#24324d;font-size:22px;cursor:pointer}
+.quiz-card h2{margin:12px 0 8px;font-size:1.35rem}
+.quiz-case{line-height:1.55;color:#475467}
+.quiz-options{display:grid;gap:9px;margin-top:16px}
+.quiz-option{
+  width:100%;text-align:left;border:1px solid #d6e0ef;border-radius:13px;background:#fff;
+  padding:12px 14px;color:#1f2f50;font-weight:750;cursor:pointer;transition:.18s
+}
+.quiz-option:hover{transform:translateX(4px);border-color:#7ba7ff;background:#f7fbff}
+.quiz-option.correct{border-color:#22c55e;background:#ecfdf3;color:#166534}
+.quiz-option.wrong{border-color:#ef4444;background:#fff1f2;color:#991b1b}
+.quiz-option:disabled{cursor:default;opacity:.96}
+.quiz-feedback{min-height:28px;margin-top:13px;font-weight:850}
+.quiz-feedback.good{color:#15803d}.quiz-feedback.bad{color:#b91c1c}
+
+.near-prompt{
+  position:absolute;left:50%;bottom:-38px;transform:translateX(-50%);
+  z-index:45;background:#123a8f;color:white;border:2px solid #fff;
+  border-radius:999px;padding:6px 11px;font-size:10px;font-weight:900;
+  box-shadow:0 8px 20px rgba(14,48,120,.24);white-space:nowrap;
+  animation:promptPulse .85s ease-in-out infinite alternate;
+}
+@keyframes promptPulse{to{transform:translateX(-50%) scale(1.08)}}
+
+/* ===== v1.3 level transition ===== */
+.level-complete-card{
+  position:relative;z-index:2;width:min(520px,92vw);padding:30px 26px;
+  border-radius:26px;text-align:center;color:#fff;
+  background:linear-gradient(160deg,#143c9a,#0b286f 58%,#101d4f);
+  border:2px solid rgba(255,255,255,.18);
+  box-shadow:0 32px 100px rgba(0,0,0,.42);
+}
+.trophy-big{font-size:4.5rem;animation:trophyFloat 1s ease-in-out infinite alternate}
+@keyframes trophyFloat{to{transform:translateY(-7px) rotate(3deg)}}
+.complete-kicker{display:block;color:#ffe267;font-weight:1000;letter-spacing:.12em;font-size:.72rem;margin:8px 0}
+.level-complete-card h2{margin:5px 0 10px;font-size:1.5rem}
+.level-complete-card p{color:#dbe8ff;line-height:1.5}
+.complete-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}
+.complete-stats>div{padding:12px;border-radius:14px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12)}
+.complete-stats small{display:block;color:#aec8ff}.complete-stats strong{display:block;margin-top:3px}
+.next-level-btn{
+  width:100%;padding:13px 16px;border:0;border-radius:13px;cursor:pointer;
+  background:linear-gradient(135deg,#ffca28,#ff8f00);color:#102050;font-weight:1000;font-size:1rem;
+  box-shadow:0 12px 24px rgba(255,153,0,.22)
+}
+.next-note{display:block;margin-top:9px;color:#c4d5ff}
+
+.level2-portal{
+  position:absolute;left:50%;top:-58px;transform:translateX(-50%);
+  z-index:50;text-align:center;color:#fff;font-weight:1000;font-size:12px;line-height:1.1;
+  padding:8px 12px;border-radius:14px;background:linear-gradient(145deg,#7c3aed,#2563eb);
+  border:2px solid #fff;box-shadow:0 0 0 5px rgba(124,58,237,.18),0 10px 25px rgba(28,49,119,.3);
+  animation:portalPulse .8s ease-in-out infinite alternate;
+}
+.level2-portal span{font-size:18px;color:#ffe45d}
+@keyframes portalPulse{to{transform:translateX(-50%) translateY(-7px) scale(1.05)}}
+
+
+/* ==========================================================
+   v1.4 — REAL LEVEL 2: TAMAN NILAI
+   ========================================================== */
+.level2-scene{
+  position:absolute;inset:0;z-index:12;overflow:hidden;
+  background:
+    radial-gradient(circle at 20% 15%,rgba(255,255,255,.22) 0 2px,transparent 3px),
+    radial-gradient(circle at 82% 18%,rgba(255,255,255,.16) 0 2px,transparent 3px),
+    linear-gradient(180deg,#91e17b 0%,#69cb61 100%);
+  background-size:140px 140px,180px 180px,auto;
+}
+.level2-scene:before{
+  content:"";position:absolute;left:0;right:0;top:44%;height:18%;
+  background:linear-gradient(#e3cda3,#f0dbb5,#d8bd8b);
+  box-shadow:inset 0 3px rgba(255,255,255,.3),inset 0 -3px rgba(148,101,46,.12);
+}
+.level2-scene:after{
+  content:"";position:absolute;top:0;bottom:0;left:45%;width:10%;
+  background:linear-gradient(90deg,#d5bd92,#f0dbb2,#d4bb8c);
+}
+.l2-bg-grid{
+  position:absolute;inset:0;opacity:.12;
+  background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);
+  background-size:50px 50px;
+}
+.l2-title-board{
+  position:absolute;left:50%;top:18px;transform:translateX(-50%);z-index:14;
+  min-width:350px;text-align:center;padding:10px 18px;border-radius:18px;
+  background:rgba(15,68,62,.85);border:1px solid rgba(255,255,255,.2);
+  box-shadow:0 12px 28px rgba(14,64,48,.24);backdrop-filter:blur(7px)
+}
+.l2-title-board small{display:block;color:#d8ff89;font-weight:900;letter-spacing:.1em}
+.l2-title-board strong{display:block;font-size:18px}
+.l2-title-board span{font-size:11px;color:#d7fff0}
+
+.l2-tree{position:absolute;width:74px;height:105px;z-index:13}
+.l2-tree:before{content:"";position:absolute;left:31px;bottom:0;width:14px;height:42px;background:#8a5632;border-radius:5px}
+.l2-tree:after{content:"";position:absolute;left:5px;top:0;width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#75d87a 0 22%,#35ad54 25% 55%,#1d8e43 58%);box-shadow:-20px 15px 0 -10px #45bb5c,19px 15px 0 -10px #2c9d4c}
+.lt1{left:6%;top:8%}.lt2{right:7%;top:8%}.lt3{left:5%;bottom:8%}.lt4{right:5%;bottom:7%}
+
+.l2-flowerbed{position:absolute;width:130px;height:34px;border-radius:50%;background:
+ radial-gradient(circle at 10% 50%,#ff7aa2 0 7px,transparent 8px),
+ radial-gradient(circle at 30% 55%,#ffd45e 0 7px,transparent 8px),
+ radial-gradient(circle at 50% 45%,#c084fc 0 7px,transparent 8px),
+ radial-gradient(circle at 70% 58%,#ff7aa2 0 7px,transparent 8px),
+ radial-gradient(circle at 90% 48%,#ffd45e 0 7px,transparent 8px),
+ #3ba554;z-index:13}
+.fb1{left:8%;top:38%}.fb2{right:8%;bottom:26%}
+
+.l2-pond{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:170px;height:110px;border-radius:50%;background:radial-gradient(ellipse,#9be8ff 0 35%,#43bde7 38% 58%,#2a8ebd 60%);border:10px solid #a8a8a8;box-shadow:0 10px 25px rgba(26,101,134,.25);z-index:13}
+.l2-bridge{position:absolute;left:42%;top:47%;width:16%;height:9%;background:repeating-linear-gradient(90deg,#8b562e 0 10px,#b77945 10px 19px);border:4px solid #6a4027;border-radius:16px;z-index:14;box-shadow:0 8px 12px rgba(0,0,0,.18)}
+
+.value-orb,.hazard-orb{
+  position:absolute;z-index:16;transform:translate(-50%,-50%);
+  width:110px;min-height:86px;border-radius:22px;display:grid;place-items:center;
+  text-align:center;padding:8px;border:3px solid rgba(255,255,255,.82);
+  box-shadow:0 12px 24px rgba(0,0,0,.18);transition:.22s;user-select:none;
+}
+.value-orb{background:linear-gradient(145deg,#e8fff0,#9bf0b6);color:#155b36;cursor:pointer}
+.value-orb span,.hazard-orb span{font-size:30px;display:block}
+.value-orb b,.hazard-orb b{font-size:11px}
+.value-orb:after{
+  content:"";position:absolute;inset:-8px;border-radius:28px;border:2px solid rgba(73,234,132,.42);
+  animation:goodPulse .9s ease-in-out infinite alternate
+}
+@keyframes goodPulse{to{transform:scale(1.08);opacity:.35}}
+.value-orb.collected{opacity:0;transform:translate(-50%,-50%) scale(.3);pointer-events:none}
+
+.hazard-orb{background:linear-gradient(145deg,#ffe7e7,#ff9d9d);color:#812020}
+.hazard-orb.hit{animation:hazardHit .35s}
+@keyframes hazardHit{25%{transform:translate(-57%,-50%)}50%{transform:translate(-43%,-50%)}75%{transform:translate(-54%,-50%)}}
+.l2-counter{
+  position:absolute;right:18px;top:18px;z-index:18;padding:9px 14px;border-radius:15px;
+  background:rgba(10,65,61,.88);border:1px solid rgba(255,255,255,.17);
+  box-shadow:0 9px 22px rgba(0,0,0,.18);text-align:center
+}
+.l2-counter span{display:block;font-size:9px;color:#caffdc}.l2-counter strong{font-size:16px}
+.l2-message{
+  position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:18;
+  background:rgba(10,42,91,.9);border:1px solid rgba(255,255,255,.15);
+  border-radius:14px;padding:9px 16px;font-size:11px;color:#e7efff;
+  box-shadow:0 10px 25px rgba(0,0,0,.18)
+}
+
+/* hide Level 1 scenery when real Level 2 is active */
+.game-area.level2-active .school,
+.game-area.level2-active .library,
+.game-area.level2-active .park,
+.game-area.level2-active .tree,
+.game-area.level2-active .lamp,
+.game-area.level2-active .bench,
+.game-area.level2-active .value-sign,
+.game-area.level2-active .path-vertical,
+.game-area.level2-active .path-horizontal,
+.game-area.level2-active .tactile,
+.game-area.level2-active .npc,
+.game-area.level2-active .mini-map{
+  display:none!important;
+}
+.game-area.level2-active .player{z-index:30}
+.game-area.level2-active .mission-card{z-index:40}
+.game-area.level2-active .hud{z-index:45}
+
+@media(max-width:700px){
+  .l2-title-board{min-width:260px;top:70px}
+  .value-orb,.hazard-orb{width:88px;min-height:72px}
+  .l2-pond{width:135px;height:88px}
+}
+
+
+/* ==========================================================
+   v1.5 — LEVEL 3: RUANG MUSYAWARAH
+   ========================================================== */
+.level3-scene{position:absolute;inset:0;z-index:12;overflow:hidden;background:linear-gradient(180deg,#d8ecff 0 22%,#f6e8cf 22% 100%)}
+.l3-wall{position:absolute;left:0;right:0;top:0;height:24%;background:repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 38px,rgba(255,255,255,.12) 38px 76px),linear-gradient(#8fc2f0,#b7dafa);border-bottom:8px solid #c7a76f}
+.level3-scene:after{content:"";position:absolute;inset:24% 0 0;background:linear-gradient(90deg,rgba(124,87,46,.08) 1px,transparent 1px),linear-gradient(rgba(124,87,46,.08) 1px,transparent 1px),linear-gradient(#ead7b5,#f4e6cc);background-size:58px 58px,58px 58px,auto;pointer-events:none}
+.l3-stage{position:absolute;left:50%;top:5%;transform:translateX(-50%);z-index:14;width:min(480px,60%);padding:11px 16px;text-align:center;border-radius:16px;background:linear-gradient(150deg,#183f98,#0c2d78);border:2px solid rgba(255,255,255,.25);box-shadow:0 14px 30px rgba(20,50,106,.22)}
+.l3-stage .garuda-emblem{font-size:26px}.l3-stage strong{display:block;font-size:16px;color:#fff}.l3-stage span{font-size:10px;color:#cfe0ff}
+.l3-table{position:absolute;z-index:14;width:180px;height:70px;background:linear-gradient(#b97840,#7d4828);border:5px solid #6a3c23;border-radius:44% 44% 18px 18px;box-shadow:0 16px 0 -8px rgba(74,43,25,.4)}
+.table-a{left:11%;top:35%}.table-b{right:11%;top:35%}.table-c{left:50%;top:69%;transform:translateX(-50%)}
+.l3-npc{position:absolute;z-index:17;width:128px;text-align:center;color:#18355f;background:rgba(255,255,255,.9);border:2px solid #cbdcf4;border-radius:15px;padding:9px;box-shadow:0 10px 22px rgba(47,70,109,.15)}
+.l3-avatar{font-size:34px}.l3-npc b{display:block;font-size:12px}.l3-npc small{font-size:9px;color:#607394}
+.npc-a{left:13%;top:24%}.npc-b{right:13%;top:24%}.npc-c{left:50%;top:55%;transform:translateX(-50%)}
+.decision-point{position:absolute;z-index:20;width:190px;min-height:86px;padding:10px 12px;border-radius:18px;border:3px solid #fff;background:linear-gradient(145deg,#e9f3ff,#b7d6ff);color:#163a75;box-shadow:0 12px 26px rgba(21,67,135,.2);cursor:pointer;transition:.2s}
+.decision-point>span{display:grid;place-items:center;width:28px;height:28px;margin:0 auto 4px;border-radius:50%;background:#1f5fd0;color:white;font-weight:1000}
+.decision-point b{display:block;font-size:12px}.decision-point small{font-size:9px;color:#5b7199}
+.decision-point:not(.locked){animation:decisionPulse 1s ease-in-out infinite alternate}
+@keyframes decisionPulse{to{transform:translateY(-5px);box-shadow:0 18px 32px rgba(21,67,135,.28)}}
+.decision-point.locked{filter:grayscale(.8);opacity:.48;cursor:not-allowed;animation:none}
+.decision-point.completed{background:linear-gradient(145deg,#e8fff0,#9beab7);color:#155b36;border-color:#dcffe8;animation:none}
+.dp1{left:16%;top:51%}.dp2{right:16%;top:51%}.dp3{left:50%;bottom:7%;transform:translateX(-50%)}
+.dp3:not(.locked){animation:decisionPulseCenter 1s ease-in-out infinite alternate}
+@keyframes decisionPulseCenter{to{transform:translate(-50%,-5px);box-shadow:0 18px 32px rgba(21,67,135,.28)}}
+.l3-status{position:absolute;right:18px;top:18px;z-index:25;background:rgba(13,48,105,.9);color:#fff;border-radius:14px;padding:9px 14px;border:1px solid rgba(255,255,255,.18)}
+.l3-status span{display:block;font-size:9px;color:#cfe0ff}.l3-status strong{font-size:16px}
+.l3-message{position:absolute;left:50%;bottom:15px;transform:translateX(-50%);z-index:24;background:rgba(13,48,105,.92);color:#eef5ff;border-radius:14px;padding:9px 16px;border:1px solid rgba(255,255,255,.15);font-size:11px;box-shadow:0 10px 22px rgba(0,0,0,.16)}
+.game-area.level3-active .school,.game-area.level3-active .library,.game-area.level3-active .park,.game-area.level3-active .tree,.game-area.level3-active .lamp,.game-area.level3-active .bench,.game-area.level3-active .value-sign,.game-area.level3-active .path-vertical,.game-area.level3-active .path-horizontal,.game-area.level3-active .tactile,.game-area.level3-active .npc,.game-area.level3-active .mini-map,.game-area.level3-active .level2-scene{display:none!important}
+.game-area.level3-active .player{z-index:30}.game-area.level3-active .mission-card{z-index:40}.game-area.level3-active .hud{z-index:45}
+@media(max-width:720px){.decision-point{width:150px;min-height:75px}.dp1{left:5%;top:54%}.dp2{right:5%;top:54%}.l3-npc{width:110px}}
+.sound-active{box-shadow:0 0 0 2px #68e89a inset,0 0 18px rgba(77,226,130,.35)!important}
+
+/* v1.6 LEVEL 4 */
+.level4-scene{position:absolute;inset:0;z-index:12;overflow:hidden;background:linear-gradient(180deg,#dcecff 0 31%,#f2dfbd 31% 100%)}
+.l4-wall{position:absolute;inset:0 0 auto;height:33%;background:linear-gradient(#b8d8f5,#d9ebfb);border-bottom:9px solid #b89062}.level4-scene:after{content:"";position:absolute;inset:33% 0 0;background:linear-gradient(90deg,rgba(125,86,44,.08) 1px,transparent 1px),linear-gradient(rgba(125,86,44,.08) 1px,transparent 1px),linear-gradient(#ead5b0,#f3e4ca);background-size:56px 56px;pointer-events:none}
+.l4-board{position:absolute;left:50%;top:5%;transform:translateX(-50%);z-index:14;width:min(500px,60%);padding:12px 18px;text-align:center;border:8px solid #784b2b;border-radius:12px;background:linear-gradient(#255c4a,#164638)}.l4-board small{display:block;color:#f6df7d;font-weight:900}.l4-board strong{display:block;color:#fff;font-size:18px}.l4-board span{font-size:10px;color:#d8f6e9}
+.l4-window{position:absolute;top:9%;width:120px;height:105px;border:9px solid #fff;background:linear-gradient(#8ed4ff,#d8f3ff);z-index:13}.w1{left:6%}.w2{right:6%}.l4-cabinet{position:absolute;right:5%;top:37%;width:110px;height:150px;background:#ad7748;border:6px solid #71472b;border-radius:8px;z-index:13}.l4-plant{position:absolute;left:5%;top:42%;width:65px;height:90px;z-index:13}.l4-plant:before{content:"";position:absolute;left:17px;bottom:0;width:32px;height:31px;background:#b4693f;border-radius:4px 4px 13px 13px}.l4-plant:after{content:"🌿";position:absolute;font-size:54px;top:0}
+.scenario-card{position:absolute;left:50%;top:35%;transform:translateX(-50%);z-index:18;width:min(560px,48%);padding:13px 16px;border-radius:17px;background:rgba(255,255,255,.94);color:#243552;border:2px solid #cbd9ec;text-align:center}.scenario-card small{display:block;color:#235fc6;font-weight:900}.scenario-card strong{display:block;margin:3px 0;font-size:13px}.scenario-card p{margin:4px 0 0;font-size:10px;line-height:1.4;color:#60708c}
+.action-station{position:absolute;z-index:20;width:160px;min-height:86px;padding:10px;border-radius:18px;border:3px solid #fff;background:linear-gradient(145deg,#fff8dc,#ffd874);color:#65430b;box-shadow:0 12px 24px rgba(93,68,14,.18);cursor:pointer}.action-station>span{display:grid;place-items:center;width:27px;height:27px;margin:0 auto 4px;border-radius:50%;background:#ef9d12;color:#fff;font-weight:1000}.action-station b{display:block;font-size:12px}.action-station small{font-size:9px}.action-station:not(.locked){animation:stationPulse .9s ease-in-out infinite alternate}@keyframes stationPulse{to{transform:translateY(-5px)}}.action-station.locked{filter:grayscale(.75);opacity:.48;cursor:not-allowed;animation:none}.action-station.completed{background:linear-gradient(145deg,#e5ffec,#9ee8b5);color:#145a32;animation:none}.as1{left:12%;top:56%}.as2{right:12%;top:56%}.as3{left:25%;bottom:8%}.as4{right:25%;bottom:8%}
+.l4-progress-card{position:absolute;right:18px;top:18px;z-index:25;background:rgba(28,60,115,.92);color:#fff;border-radius:14px;padding:9px 14px}.l4-progress-card span{display:block;font-size:9px}.l4-progress-card strong{font-size:16px}.l4-message{position:absolute;left:50%;bottom:15px;transform:translateX(-50%);z-index:24;background:rgba(28,60,115,.92);color:#eef5ff;border-radius:14px;padding:9px 16px;font-size:11px}
+.game-area.level4-active .school,.game-area.level4-active .library,.game-area.level4-active .park,.game-area.level4-active .tree,.game-area.level4-active .lamp,.game-area.level4-active .bench,.game-area.level4-active .value-sign,.game-area.level4-active .path-vertical,.game-area.level4-active .path-horizontal,.game-area.level4-active .tactile,.game-area.level4-active .npc,.game-area.level4-active .mini-map,.game-area.level4-active .level2-scene,.game-area.level4-active .level3-scene{display:none!important}.game-area.level4-active .player{z-index:30}.game-area.level4-active .mission-card{z-index:40}.game-area.level4-active .hud{z-index:45}
+.adventure-complete-card{position:relative;z-index:2;width:min(650px,94vw);max-height:90vh;overflow:auto;padding:27px;border-radius:28px;text-align:center;color:#fff;background:linear-gradient(155deg,#102e7e,#163e9e 55%,#0c205b);border:2px solid rgba(255,255,255,.2)}.final-confetti{font-size:36px}.final-badge{display:inline-block;margin:10px 0 14px;padding:9px 16px;border-radius:999px;background:linear-gradient(135deg,#ffe47a,#f6a800);color:#442b00;font-weight:1000}.final-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.final-grid>div{padding:12px;border-radius:14px;background:rgba(255,255,255,.09)}.plan-summary{text-align:left;margin:15px 0;padding:15px;border-radius:16px;background:rgba(255,255,255,.08)}.plan-summary h3{margin:0 0 8px;color:#ffe77b}.plan-summary p{margin:6px 0;font-size:12px}.final-actions{display:grid;grid-template-columns:1.3fr 1fr;gap:9px}.secondary-game-btn{border:1px solid rgba(255,255,255,.18);border-radius:13px;padding:12px;background:rgba(255,255,255,.09);color:#fff;font-weight:900;cursor:pointer}.random-note{display:block;margin-top:9px;color:#bcd1ff}
+@media(max-width:720px){.scenario-card{width:70%}.action-station{width:135px}.as1{left:4%}.as2{right:4%}.as3{left:14%}.as4{right:14%}.final-actions{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">📘</div>
+        <div>
+          <h1>PancaQuest <span>Adventure</span></h1>
+          <p>PancaPath • Kepribadian Bangsa • v1.6</p>
+        </div>
+      </div>
+
+      <div class="level-card">
+        <div class="level-top">
+          <span>LEVEL 1</span>
+          <strong>Sekolah • Kenali Nilainya</strong>
+          <b id="progressText">25%</b>
+        </div>
+        <div class="progress-track"><div id="progressBar"></div></div>
+      </div>
+
+      <div class="top-actions">
+        <button id="soundBtn" class="icon-btn" aria-label="Suara">🔊</button>
+        <button id="fullscreenBtn" class="icon-btn" aria-label="Layar penuh">⛶</button>
+        <button id="pauseBtn" class="icon-btn" aria-label="Jeda">Ⅱ</button>
+      </div>
+    </header>
+
+    <main id="gameArea" class="game-area" aria-label="Area permainan PancaQuest Adventure">
+      <div class="sky-glow"></div>
+
+      <!-- HUD -->
+      <div class="hud hearts" aria-label="Nyawa">
+        <span>❤️</span><span>❤️</span><span>❤️</span>
+      </div>
+      <div class="hud xp">⭐ <strong id="xpText">0 XP</strong></div>
+
+      <!-- SCHOOL -->
+      <section class="school scene-card" id="schoolArea">
+        <div id="schoolQuestMark" class="location-quest hidden">!</div>
+        <div id="schoolPrompt" class="near-prompt hidden">E / AKSI</div>
+        <div class="roof"></div>
+        <div class="school-logo">✦</div>
+        <div class="school-title">SEKOLAH</div>
+        <div class="banner left">BERPRESTASI<br>BERKARAKTER<br>UNTUK INDONESIA</div>
+        <div class="banner right">PANCASILA<br>DALAM AKSI<br>SEHARI-HARI</div>
+        <div class="windows">
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="door"></div>
+      </section>
+
+      <!-- LIBRARY -->
+      <section class="library scene-card" id="libraryArea">
+        <div id="libraryQuestMark" class="location-quest hidden">!</div>
+        <div id="libraryPrompt" class="near-prompt hidden">E / AKSI</div>
+        <div class="mini-roof"></div>
+        <div class="library-sign">📖 PERPUSTAKAAN</div>
+        <div class="shelves">
+          <span></span><span></span><span></span>
+        </div>
+      </section>
+
+      <!-- PARK -->
+      <section class="park scene-card" id="parkArea">
+        <div id="parkQuestMark" class="location-quest hidden">!</div>
+        <div id="level2Portal" class="level2-portal hidden">LEVEL 2<br><span>▶</span></div>
+        <div id="parkPrompt" class="near-prompt hidden">E / AKSI</div>
+        <div class="fountain"><div class="water"></div></div>
+        <div class="park-sign">🌳 TAMAN</div>
+      </section>
+
+      <!-- DECORATION -->
+      <div class="tree t1"></div><div class="tree t2"></div><div class="tree t3"></div>
+      <div class="tree t4"></div><div class="tree t5"></div>
+      <div class="lamp l1"></div><div class="lamp l2"></div>
+      <div class="bench"></div>
+      <div class="value-sign">
+        <span>Disiplin</span><span>Toleransi</span><span>Gotong Royong</span><span>Integritas</span>
+      </div>
+
+      <!-- PATH -->
+      <div class="path-vertical"></div>
+      <div class="path-horizontal"></div>
+      <div class="tactile vertical"></div>
+      <div class="tactile horizontal"></div>
+
+      <!-- NPC NADIA -->
+      <div class="npc npc-nadia" data-npc="nadia">
+        <div class="name-tag">Nadia</div>
+        <div class="character semi3d girl">
+          <div class="char-shadow"></div>
+          <div class="head">
+            <div class="hair back"></div>
+            <div class="face">
+              <span class="eye e1"></span><span class="eye e2"></span>
+              <span class="mouth"></span>
+              <span class="blush b1"></span><span class="blush b2"></span>
+            </div>
+            <div class="hair front"></div>
+          </div>
+          <div class="body uniform">
+            <div class="tie"></div>
+            <div class="arm a1"></div><div class="arm a2 wave"></div>
+            <div class="leg g1"></div><div class="leg g2"></div>
+          </div>
+        </div>
+        <div class="quest-mark">!</div>
+      </div>
+
+      <!-- NPC TEACHER -->
+      <div class="npc npc-teacher" data-npc="teacher">
+        <div class="name-tag">Pak Budi</div>
+        <div class="character semi3d teacher">
+          <div class="char-shadow"></div>
+          <div class="head">
+            <div class="hair back"></div>
+            <div class="face">
+              <span class="eye e1"></span><span class="eye e2"></span>
+              <span class="mouth smile"></span>
+              <span class="glasses"></span>
+            </div>
+            <div class="hair front"></div>
+          </div>
+          <div class="body uniform">
+            <div class="arm a1"></div><div class="arm a2"></div>
+            <div class="leg g1"></div><div class="leg g2"></div>
+          </div>
+        </div>
+        <div class="talk-bubble">•••</div>
+      </div>
+
+      <!-- PLAYER -->
+      <div id="player" class="player" aria-label="Karakter pemain">
+        <div class="interaction-ring"></div>
+        <div class="character semi3d boy player-char">
+          <div class="char-shadow"></div>
+          <div class="head">
+            <div class="hair back"></div>
+            <div class="face">
+              <span class="eye e1"></span><span class="eye e2"></span>
+              <span class="mouth"></span>
+              <span class="blush b1"></span><span class="blush b2"></span>
+            </div>
+            <div class="hair front"></div>
+          </div>
+          <div class="body uniform">
+            <div class="backpack"></div>
+            <div class="tie"></div>
+            <div class="arm a1"></div><div class="arm a2"></div>
+            <div class="leg g1"></div><div class="leg g2"></div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- LEVEL 2 REAL SCENE -->
+      <section id="level2Scene" class="level2-scene hidden" aria-label="Level 2 Taman Nilai">
+        <div class="l2-bg-grid"></div>
+        <div class="l2-title-board">
+          <small>LEVEL 2</small>
+          <strong>Taman Nilai</strong>
+          <span>Kumpulkan nilai baik, hindari perilaku negatif</span>
+        </div>
+
+        <div class="l2-tree lt1"></div>
+        <div class="l2-tree lt2"></div>
+        <div class="l2-tree lt3"></div>
+        <div class="l2-tree lt4"></div>
+        <div class="l2-flowerbed fb1"></div>
+        <div class="l2-flowerbed fb2"></div>
+        <div class="l2-pond"></div>
+        <div class="l2-bridge"></div>
+
+        <!-- GOOD VALUES -->
+        <button class="value-orb good-value" data-value="Toleransi" data-id="good1" style="left:14%;top:28%">
+          <span>🤝</span><b>Toleransi</b>
+        </button>
+        <button class="value-orb good-value" data-value="Gotong Royong" data-id="good2" style="left:70%;top:25%">
+          <span>🫶</span><b>Gotong Royong</b>
+        </button>
+        <button class="value-orb good-value" data-value="Musyawarah" data-id="good3" style="left:20%;top:68%">
+          <span>🗣️</span><b>Musyawarah</b>
+        </button>
+        <button class="value-orb good-value" data-value="Keadilan" data-id="good4" style="left:74%;top:69%">
+          <span>⚖️</span><b>Keadilan</b>
+        </button>
+
+        <!-- NEGATIVE BEHAVIORS -->
+        <div class="hazard-orb" data-hazard="Egoisme" data-id="bad1" style="left:45%;top:24%">
+          <span>😠</span><b>Egoisme</b>
+        </div>
+        <div class="hazard-orb" data-hazard="Diskriminasi" data-id="bad2" style="left:53%;top:57%">
+          <span>🚫</span><b>Diskriminasi</b>
+        </div>
+        <div class="hazard-orb" data-hazard="Intoleransi" data-id="bad3" style="left:35%;top:77%">
+          <span>💢</span><b>Intoleransi</b>
+        </div>
+        <div class="hazard-orb" data-hazard="Memaksakan Kehendak" data-id="bad4" style="left:62%;top:78%">
+          <span>✋</span><b>Memaksa</b>
+        </div>
+
+        <div class="l2-counter">
+          <span>Nilai ditemukan</span>
+          <strong><span id="l2Collected">0</span>/4</strong>
+        </div>
+
+        <div id="l2Message" class="l2-message">
+          🌳 Bergeraklah di taman dan sentuh 4 nilai positif.
+        </div>
+      </section>
+
+
+      <!-- LEVEL 3 REAL SCENE -->
+      <section id="level3Scene" class="level3-scene hidden" aria-label="Level 3 Ruang Musyawarah">
+        <div class="l3-wall"></div>
+        <div class="l3-stage">
+          <div class="garuda-emblem">🦅</div>
+          <strong>RUANG MUSYAWARAH</strong>
+          <span>Dengar • Pertimbangkan • Putuskan</span>
+        </div>
+
+        <div class="l3-table table-a"></div>
+        <div class="l3-table table-b"></div>
+        <div class="l3-table table-c"></div>
+
+        <div class="l3-npc npc-a">
+          <div class="l3-avatar">👧</div>
+          <b>Kelompok A</b>
+          <small>Usulan Budaya Lokal</small>
+        </div>
+        <div class="l3-npc npc-b">
+          <div class="l3-avatar">🧑</div>
+          <b>Kelompok B</b>
+          <small>Usulan Budaya Populer</small>
+        </div>
+        <div class="l3-npc npc-c">
+          <div class="l3-avatar">👦</div>
+          <b>Ketua Kelas</b>
+          <small>Fasilitator Musyawarah</small>
+        </div>
+
+        <button class="decision-point dp1" data-decision="1">
+          <span>1</span><b>Dengarkan Semua Pihak</b><small>Dekati lalu E / AKSI</small>
+        </button>
+        <button class="decision-point dp2 locked" data-decision="2">
+          <span>2</span><b>Bandingkan Alternatif</b><small>Selesaikan tahap 1</small>
+        </button>
+        <button class="decision-point dp3 locked" data-decision="3">
+          <span>3</span><b>Putuskan Bersama</b><small>Selesaikan tahap 2</small>
+        </button>
+
+        <div class="l3-status">
+          <span>Tahap musyawarah</span>
+          <strong><span id="l3Done">0</span>/3</strong>
+        </div>
+
+        <div id="l3Message" class="l3-message">
+          🗣️ Mulailah dari titik 1: Dengarkan Semua Pihak.
+        </div>
+      </section>
+
+
+      <!-- LEVEL 4 REAL SCENE -->
+      <section id="level4Scene" class="level4-scene hidden" aria-label="Level 4 Kelas Aksi">
+        <div class="l4-wall"></div>
+        <div class="l4-board"><small>LEVEL 4 • C6</small><strong>KELAS AKSI</strong><span>Rancang Tindakan Nyata</span></div>
+        <div class="l4-window w1"></div><div class="l4-window w2"></div><div class="l4-cabinet"></div><div class="l4-plant"></div>
+        <div id="scenarioCard" class="scenario-card"><small>SKENARIO MISI</small><strong id="scenarioTitle">Memuat skenario...</strong><p id="scenarioText">...</p></div>
+        <button class="action-station as1" data-action-step="1"><span>1</span><b>🎯 Tindakan</b><small>Pilih tindakan utama</small></button>
+        <button class="action-station as2 locked" data-action-step="2"><span>2</span><b>👥 Pelaksana</b><small>Selesaikan tahap 1</small></button>
+        <button class="action-station as3 locked" data-action-step="3"><span>3</span><b>🕒 Waktu</b><small>Selesaikan tahap 2</small></button>
+        <button class="action-station as4 locked" data-action-step="4"><span>4</span><b>📊 Indikator</b><small>Selesaikan tahap 3</small></button>
+        <div class="l4-progress-card"><span>Rancangan lengkap</span><strong><span id="l4Done">0</span>/4</strong></div>
+        <div id="l4Message" class="l4-message">🛠️ Mulailah dari stasiun 1: Tindakan.</div>
+      </section>
+
+      <!-- DIALOGUE -->
+      <aside id="dialogue" class="dialogue-card hidden" aria-live="polite">
+        <div class="dialogue-avatar">👧</div>
+        <div class="dialogue-content">
+          <strong id="dialogueName">Nadia</strong>
+          <p id="dialogueText">Ayo, kita jelajahi sekolah ini! Ada banyak nilai Pancasila yang bisa kamu temukan.</p>
+          <button id="nextDialogue">Lanjut ▶</button>
+        </div>
+      </aside>
+
+      <!-- CURRENT MISSION -->
+      <aside class="mission-card">
+        <div class="mission-icon">📋</div>
+        <div>
+          <small>MISI SAAT INI</small>
+          <strong id="missionTitle">Kenali nilai Pancasila di sekolah</strong>
+          <p id="missionText">Dekati Nadia lalu tekan tombol aksi untuk memulai misi.</p>
+        </div>
+        <button id="missionBtn">➜</button>
+      </aside>
+
+      <!-- MINI MAP -->
+      <aside class="mini-map">
+        <div class="mini-head">Peta Sekolah <button id="miniExpand">⛶</button></div>
+        <div class="mini-world">
+          <span class="mini-school">🏫</span>
+          <span class="mini-library">📚</span>
+          <span class="mini-park">🌳</span>
+          <span id="miniPlayer" class="mini-player">●</span>
+        </div>
+      </aside>
+
+      <!-- DESKTOP CONTROL HINT -->
+      <div class="desktop-hint">
+        <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Bergerak</span>
+        <span><kbd>E</kbd> / <kbd>Space</kbd> Interaksi</span>
+      </div>
+
+      <!-- MOBILE CONTROLS -->
+      <div id="mobileControls" class="mobile-controls">
+        <div id="joystick" class="joystick">
+          <div id="joystickKnob" class="joystick-knob"></div>
+        </div>
+        <button id="actionBtn" class="action-btn">✋<small>AKSI</small></button>
+      </div>
+    </main>
+
+
+    <!-- QUIZ / CASE MODAL -->
+    <div id="quizModal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="quiz-card">
+        <div class="quiz-head">
+          <span id="quizBadge">📚 Tantangan</span>
+          <button id="closeQuizBtn" class="quiz-close">×</button>
+        </div>
+        <h2 id="quizTitle">Tantangan Pancasila</h2>
+        <p id="quizCase" class="quiz-case"></p>
+        <div id="quizOptions" class="quiz-options"></div>
+        <div id="quizFeedback" class="quiz-feedback"></div>
+      </div>
+    </div>
+
+
+    <!-- LEVEL COMPLETE / TRANSITION -->
+    <div id="levelCompleteModal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="level-complete-card">
+        <div class="trophy-big">🏆</div>
+        <span class="complete-kicker">LEVEL 1 SELESAI</span>
+        <h2>Sekolah • Kenali Nilainya</h2>
+        <p>Kamu telah menemukan nilai <strong>toleransi, musyawarah, persatuan, dan keadilan</strong>.</p>
+        <div class="complete-stats">
+          <div><small>XP Level</small><strong>100 XP</strong></div>
+          <div><small>Status</small><strong>✅ Selesai</strong></div>
+        </div>
+        <button id="goLevel2Btn" class="next-level-btn">Lanjut ke Level 2 →</button>
+        <small class="next-note">Level 2: Taman Nilai • Kumpulkan Nilai Baik</small>
+      </div>
+    </div>
+
+
+    <!-- LEVEL 2 COMPLETE -->
+    <div id="level2CompleteModal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="level-complete-card l2-complete">
+        <div class="trophy-big">🌟</div>
+        <span class="complete-kicker">LEVEL 2 SELESAI</span>
+        <h2>Taman Nilai • Kumpulkan Nilai Baik</h2>
+        <p>Kamu berhasil mengumpulkan <strong>Toleransi, Gotong Royong, Musyawarah, dan Keadilan</strong>.</p>
+        <div class="complete-stats">
+          <div><small>Nilai Positif</small><strong>4 / 4</strong></div>
+          <div><small>Total XP</small><strong id="l2TotalXp">125 XP</strong></div>
+        </div>
+        <button id="goLevel3Btn" class="next-level-btn">Lanjut ke Level 3 →</button>
+        <small class="next-note">Level 3: Ruang Musyawarah • Pilih Solusinya</small>
+      </div>
+    </div>
+
+
+    <!-- LEVEL 3 COMPLETE -->
+    <div id="level3CompleteModal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="level-complete-card l3-complete">
+        <div class="trophy-big">🤝</div>
+        <span class="complete-kicker">LEVEL 3 SELESAI</span>
+        <h2>Ruang Musyawarah • Pilih Solusinya</h2>
+        <p>Kamu berhasil mendengar semua pihak, membandingkan alternatif, dan memilih solusi melalui musyawarah.</p>
+        <div class="complete-stats">
+          <div><small>Tahap Selesai</small><strong>3 / 3</strong></div>
+          <div><small>Adventure XP</small><strong id="l3TotalXp">150 XP</strong></div>
+        </div>
+        <button id="goLevel4Btn" class="next-level-btn">Lanjut ke Level 4 →</button>
+        <small class="next-note">Level 4: Kelas Aksi • Rancang Tindakan Nyata</small>
+      </div>
+    </div>
+
+
+    <!-- PANCAQUEST COMPLETE -->
+    <div id="adventureCompleteModal" class="modal hidden"><div class="modal-backdrop"></div><div class="adventure-complete-card">
+      <div class="final-confetti">✨ 🏆 ✨</div><span class="complete-kicker">PANCAQUEST ADVENTURE COMPLETE</span><h2>Misi Kepribadian Pancasila Selesai</h2>
+      <div class="final-badge" id="finalBadge">🏅 Pancasila Pathfinder</div>
+      <div class="final-grid"><div><small>Adventure XP</small><strong id="finalAdventureXp">175 XP</strong></div><div><small>Skor PancaQuest</small><strong id="finalScore">100 / 100</strong></div></div>
+      <div class="plan-summary"><h3>Rancangan Aksi Kamu</h3><p><b>Skenario:</b> <span id="finalScenario">—</span></p><p><b>Tindakan:</b> <span id="finalAction">—</span></p><p><b>Pelaksana:</b> <span id="finalActor">—</span></p><p><b>Waktu:</b> <span id="finalTime">—</span></p><p><b>Indikator:</b> <span id="finalIndicator">—</span></p></div>
+      <div class="final-actions"><button id="saveReturnBtn" class="next-level-btn">Simpan & Kembali ke PancaPath</button><button id="restartRandomBtn" class="secondary-game-btn">↻ Main Ulang — Acak Soal Baru</button></div>
+      <small class="random-note">Soal dan urutan pilihan akan diacak kembali saat permainan dimulai ulang.</small>
+    </div></div>
+
+    <!-- PAUSE MODAL -->
+    <div id="pauseModal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="modal-card">
+        <h2>Permainan Dijeda</h2>
+        <button id="resumeBtn">▶ Lanjutkan</button>
+        <button id="guideBtn">📖 Panduan</button>
+        <button id="resetBtn">↻ Mulai Ulang</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+const gameArea = document.getElementById('gameArea');
+const player = document.getElementById('player');
+const dialogue = document.getElementById('dialogue');
+const dialogueName = document.getElementById('dialogueName');
+const dialogueText = document.getElementById('dialogueText');
+const nextDialogue = document.getElementById('nextDialogue');
+const xpText = document.getElementById('xpText');
+const progressBar = document.getElementById('progressBar');
+const progressText = document.getElementById('progressText');
+const missionText = document.getElementById('missionText');
+const missionTitle = document.getElementById('missionTitle');
+const actionBtn = document.getElementById('actionBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const pauseModal = document.getElementById('pauseModal');
+const resumeBtn = document.getElementById('resumeBtn');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const resetBtn = document.getElementById('resetBtn');
+const miniPlayer = document.getElementById('miniPlayer');
+
+const quizModal = document.getElementById('quizModal');
+const quizTitle = document.getElementById('quizTitle');
+const quizCase = document.getElementById('quizCase');
+const quizOptions = document.getElementById('quizOptions');
+const quizFeedback = document.getElementById('quizFeedback');
+const quizBadge = document.getElementById('quizBadge');
+const closeQuizBtn = document.getElementById('closeQuizBtn');
+
+const libraryArea = document.getElementById('libraryArea');
+const parkArea = document.getElementById('parkArea');
+const schoolArea = document.getElementById('schoolArea');
+const libraryQuestMark = document.getElementById('libraryQuestMark');
+const parkQuestMark = document.getElementById('parkQuestMark');
+const schoolQuestMark = document.getElementById('schoolQuestMark');
+const libraryPrompt = document.getElementById('libraryPrompt');
+const parkPrompt = document.getElementById('parkPrompt');
+const schoolPrompt = document.getElementById('schoolPrompt');
+const level2Portal = document.getElementById('level2Portal');
+const levelCompleteModal = document.getElementById('levelCompleteModal');
+const goLevel2Btn = document.getElementById('goLevel2Btn');
+const level2Scene = document.getElementById('level2Scene');
+const l2CollectedText = document.getElementById('l2Collected');
+const l2Message = document.getElementById('l2Message');
+const level2CompleteModal = document.getElementById('level2CompleteModal');
+const l2TotalXp = document.getElementById('l2TotalXp');
+const goLevel3Btn = document.getElementById('goLevel3Btn');
+const level3Scene = document.getElementById('level3Scene');
+const l3DoneText = document.getElementById('l3Done');
+const l3Message = document.getElementById('l3Message');
+const level3CompleteModal = document.getElementById('level3CompleteModal');
+const l3TotalXp = document.getElementById('l3TotalXp');
+const goLevel4Btn = document.getElementById('goLevel4Btn');
+const level4Scene=document.getElementById('level4Scene');
+const scenarioTitle=document.getElementById('scenarioTitle');
+const scenarioText=document.getElementById('scenarioText');
+const l4DoneText=document.getElementById('l4Done');
+const l4Message=document.getElementById('l4Message');
+const adventureCompleteModal=document.getElementById('adventureCompleteModal');
+const finalBadge=document.getElementById('finalBadge');
+const finalAdventureXp=document.getElementById('finalAdventureXp');
+const finalScore=document.getElementById('finalScore');
+const finalScenario=document.getElementById('finalScenario');
+const finalAction=document.getElementById('finalAction');
+const finalActor=document.getElementById('finalActor');
+const finalTime=document.getElementById('finalTime');
+const finalIndicator=document.getElementById('finalIndicator');
+const saveReturnBtn=document.getElementById('saveReturnBtn');
+const restartRandomBtn=document.getElementById('restartRandomBtn');
+
+let state = {
+  x: 47,
+  y: 69,
+  xp: 0,
+  progress: 25,
+  paused: false,
+  stage: 0, // 0 Nadia, 1 Library, 2 Pak Budi, 3 Park, 4 Final School, 5 Complete
+  lastDir: 'down',
+  currentLevel: 1,
+  level2Collected: [],
+  totalXp: 100,
+  lastHazardHit: 0,
+  level3Step: 0,
+  audioEnabled: true,
+  audioStarted: false,
+  level4Step:0, mistakes:0, level4Scenario:null, level4Plan:{}
+};
+
+const keys = {};
+const speed = 0.16;
+let last = performance.now();
+let activeQuiz = null;
+
+const STAGES = [
+  { title:'Kenali Nilai Pancasila', mission:'Temui Nadia untuk menerima misi pertama.', progress:25, xp:0 },
+  { title:'Tantangan Perpustakaan', mission:'Pergi ke Perpustakaan. Berdiri dekat bangunan lalu tekan E / Space / AKSI.', progress:40, xp:20 },
+  { title:'Analisis bersama Pak Budi', mission:'Temui Pak Budi dan analisis contoh perilaku Pancasila.', progress:55, xp:35 },
+  { title:'Tantangan Taman', mission:'Pergi ke Taman dan pilih tindakan yang mencerminkan musyawarah.', progress:70, xp:50 },
+  { title:'Final Mission', mission:'Kembali ke depan Sekolah untuk menyelesaikan Final Mission.', progress:85, xp:70 },
+  { title:'Level 1 Selesai!', mission:'Level berikutnya terbuka. Pergi ke portal LEVEL 2 di Taman atau tekan tombol Lanjut ke Level 2.', progress:100, xp:100 }
+];
+
+function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+
+function updateHUD(){
+  const s = STAGES[state.stage];
+  state.xp = s.xp;
+  state.progress = s.progress;
+  xpText.textContent = state.xp + ' XP';
+  progressBar.style.width = state.progress + '%';
+  progressText.textContent = state.progress + '%';
+  missionTitle.textContent = s.title;
+  missionText.textContent = s.mission;
+  updateQuestMarkers();
+}
+
+function updateQuestMarkers(){
+  libraryQuestMark.classList.toggle('hidden', state.stage !== 1);
+  parkQuestMark.classList.toggle('hidden', state.stage !== 3);
+  schoolQuestMark.classList.toggle('hidden', state.stage !== 4);
+  level2Portal.classList.toggle('hidden', state.stage !== 5);
+  document.querySelector('.npc-nadia .quest-mark')?.classList.toggle('hidden', state.stage !== 0);
+  document.querySelector('.npc-teacher .talk-bubble')?.classList.toggle('hidden', state.stage !== 2);
+}
+
+function updatePlayer(){
+  player.style.left = state.x + '%';
+  player.style.top = state.y + '%';
+  miniPlayer.style.left = clamp(state.x,5,90) + '%';
+  miniPlayer.style.top = clamp(state.y,8,86) + '%';
+}
+
+function move(dx,dy){
+  if(state.paused || !quizModal.classList.contains('hidden') || !dialogue.classList.contains('hidden')) return;
+  state.x = clamp(state.x + dx, 2, 94);
+  state.y = clamp(state.y + dy, 7, 84);
+  player.classList.toggle('moving', Math.abs(dx)+Math.abs(dy)>0);
+  if(dx<0) state.lastDir='left';
+  if(dx>0) state.lastDir='right';
+  if(dy<0) state.lastDir='up';
+  if(dy>0) state.lastDir='down';
+  updatePlayer();
+}
+
+function frame(now){
+  const dt = Math.min(32, now-last);
+  last = now;
+  let dx=0,dy=0;
+  if(keys['w']||keys['arrowup']) dy -= speed*dt/16;
+  if(keys['s']||keys['arrowdown']) dy += speed*dt/16;
+  if(keys['a']||keys['arrowleft']) dx -= speed*dt/16;
+  if(keys['d']||keys['arrowright']) dx += speed*dt/16;
+  if(dx||dy) move(dx,dy); else player.classList.remove('moving');
+  updateNearPrompts();
+  if(state.currentLevel===2) checkLevel2Collisions();
+  if(state.currentLevel===3) checkLevel3Interactions();
+  if(state.currentLevel===4) checkLevel4Interactions();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+document.addEventListener('keydown', e=>{
+  const k=e.key.toLowerCase();
+  keys[k]=true;
+  if([' ','e','enter'].includes(k)) {
+    e.preventDefault();
+    interact();
+  }
+  if(k==='escape') togglePause();
+});
+document.addEventListener('keyup', e=> keys[e.key.toLowerCase()]=false);
+
+function distanceTo(el){
+  const r1 = player.getBoundingClientRect();
+  const r2 = el.getBoundingClientRect();
+  const x1=r1.left+r1.width/2, y1=r1.top+r1.height/2;
+  const x2=r2.left+r2.width/2, y2=r2.top+r2.height/2;
+  return Math.hypot(x1-x2,y1-y2);
+}
+
+function near(el, threshold=160){
+  return distanceTo(el) < threshold;
+}
+
+// Mengukur jarak karakter ke TEPI objek, bukan hanya ke titik tengah.
+// Ini membuat bangunan besar seperti Perpustakaan lebih mudah diinteraksikan.
+function distanceToRect(el){
+  const p = player.getBoundingClientRect();
+  const r = el.getBoundingClientRect();
+  const px = p.left + p.width/2;
+  const py = p.top + p.height/2;
+  const cx = Math.max(r.left, Math.min(px, r.right));
+  const cy = Math.max(r.top, Math.min(py, r.bottom));
+  return Math.hypot(px-cx, py-cy);
+}
+function nearRect(el, threshold=85){
+  return distanceToRect(el) <= threshold;
+}
+
+function updateNearPrompts(){
+  if(state.currentLevel!==1){
+    libraryPrompt.classList.add('hidden');
+    parkPrompt.classList.add('hidden');
+    schoolPrompt.classList.add('hidden');
+    return;
+  }
+  libraryPrompt.classList.toggle('hidden', !(state.stage===1 && nearRect(libraryArea,110)));
+  parkPrompt.classList.toggle('hidden', !(state.stage===3 && nearRect(parkArea,110)));
+  schoolPrompt.classList.toggle('hidden', !(state.stage===4 && nearRect(schoolArea,120)));
+}
+
+function interact(){
+  ensureAudio();
+
+  if(state.currentLevel===4){
+    if(!interactLevel4()){l4Message.textContent='🛠️ Dekati stasiun aksi yang aktif lalu tekan E / Space / AKSI.';playSfx('interact');}
+    return;
+  }
+
+  if(state.currentLevel===3){
+    if(!interactLevel3()){
+      l3Message.textContent='🗣️ Dekati titik musyawarah yang aktif lalu tekan E / Space / AKSI.';
+      playSfx('interact');
+    }
+    return;
+  }
+
+  if(state.currentLevel===2){
+    l2Message.textContent='🌳 Bergeraklah menuju nilai positif. Nilai akan otomatis terambil saat disentuh.';
+    playSfx('interact');
+    return;
+  }
+
+  const nadia=document.querySelector('.npc-nadia');
+  const teacher=document.querySelector('.npc-teacher');
+
+  // Stage-specific interactions take priority
+  if(state.stage===0 && near(nadia,165)){
+    openDialogue(
+      'Nadia',
+      'Ayo, kita jelajahi sekolah ini! Misi pertamamu adalah menemukan sikap yang menunjukkan toleransi dan penghargaan terhadap perbedaan.'
+    );
+    return;
+  }
+
+  if(state.stage===1 && nearRect(libraryArea,115)){
+    openQuiz('library');
+    return;
+  }
+
+  if(state.stage===2 && near(teacher,165)){
+    openQuiz('teacher');
+    return;
+  }
+
+  if(state.stage===3 && nearRect(parkArea,115)){
+    openQuiz('park');
+    return;
+  }
+
+  if(state.stage===4 && nearRect(schoolArea,130)){
+    openQuiz('final');
+    return;
+  }
+
+  // Setelah Level 1 selesai, portal Level 2 berada di Taman.
+  if(state.stage===5 && state.currentLevel===1 && nearRect(parkArea,130)){
+    startLevel2Preview();
+    return;
+  }
+
+  // Helpful contextual hints
+  if(near(nadia,165)){
+    if(state.stage===5){
+      openDialogue('Nadia','Level 1 sudah selesai. Gunakan tombol “Lanjut ke Level 2” atau pergi menuju portal LEVEL 2 di Taman.');
+    }else{
+      openDialogue('Nadia','Lanjutkan misi sesuai petunjuk di kiri bawah. Tanda ! menunjukkan lokasi berikutnya.');
+    }
+    return;
+  }
+  if(nearRect(libraryArea,115)){
+    openDialogue('Perpustakaan', state.stage < 1
+      ? 'Temui Nadia terlebih dahulu untuk menerima misi.'
+      : 'Tantangan di Perpustakaan sudah selesai. Lanjutkan ke lokasi berikutnya.');
+    return;
+  }
+  if(near(teacher,165)){
+    openDialogue('Pak Budi', state.stage < 2
+      ? 'Selesaikan Tantangan Perpustakaan terlebih dahulu.'
+      : 'Bagus. Ikuti misi berikutnya dan terus gunakan alasan berdasarkan nilai Pancasila.');
+    return;
+  }
+  if(nearRect(parkArea,115)){
+    openDialogue('Taman', state.stage < 3
+      ? 'Masih ada misi sebelumnya yang perlu kamu selesaikan.'
+      : 'Kamu sudah menyelesaikan misi di Taman.');
+    return;
+  }
+
+  openDialogue('Petunjuk','Ikuti “Misi Saat Ini”. Untuk bangunan, cukup berdiri di dekat tepi bangunan sampai muncul label E / AKSI, lalu tekan tombol interaksi.');
+}
+
+function openDialogue(name,text){
+  dialogueName.textContent=name;
+  dialogueText.textContent=text;
+  dialogue.classList.remove('hidden');
+}
+function closeDialogue(){ dialogue.classList.add('hidden'); }
+
+nextDialogue.addEventListener('click',()=>{
+  if(dialogueName.textContent==='Nadia' && state.stage===0){
+    state.stage=1;
+    updateHUD();
+  }
+  closeDialogue();
+});
+
+
+// RANDOMIZATION PER SESSION
+function shuffleArray(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function pickRandom(arr){return arr[Math.floor(Math.random()*arr.length)];}
+const sessionQuestionCache={};
+function pickSessionQuestion(key,bank){if(!sessionQuestionCache[key])sessionQuestionCache[key]=pickRandom(bank);return sessionQuestionCache[key];}
+function shuffledOptions(options){return shuffleArray(options.map(x=>[x[0],x[1]]));}
+
+const QUIZZES = {
+  library: {
+    badge:'📚 Perpustakaan • C4',
+    title:'Tantangan Toleransi',
+    caseText:'Dua siswa memiliki kesukaan budaya yang berbeda. Salah satu siswa mengejek kesukaan temannya dan mengatakan bahwa hanya budayanya yang pantas dihargai. Sikap manakah yang paling mencerminkan kepribadian Pancasila?',
+    options:[
+      ['Membiarkan karena hanya bercanda.', false],
+      ['Menghargai perbedaan dan tidak merendahkan pilihan orang lain.', true],
+      ['Meminta seluruh teman memiliki kesukaan yang sama.', false],
+      ['Menjauhi siswa yang memiliki kesukaan berbeda.', false]
+    ],
+    correctText:'✅ Tepat! Menghargai perbedaan menunjukkan sikap kemanusiaan dan toleransi.',
+    nextStage:2
+  },
+  teacher: {
+    badge:'👨‍🏫 Pak Budi • Analisis',
+    title:'Analisis Perilaku',
+    caseText:'Ketua kelompok memberi kesempatan kepada semua anggota untuk menyampaikan pendapat sebelum mengambil keputusan. Mengapa perilaku tersebut sesuai dengan Pancasila?',
+    options:[
+      ['Karena keputusan menjadi lebih cepat tanpa perlu berdiskusi.', false],
+      ['Karena semua pendapat didengar dan keputusan dilakukan melalui musyawarah.', true],
+      ['Karena ketua kelompok memiliki hak menentukan keputusan sendiri.', false],
+      ['Karena pendapat mayoritas selalu harus diikuti tanpa pertimbangan.', false]
+    ],
+    correctText:'✅ Benar. Ini mencerminkan nilai musyawarah dan penghargaan terhadap pendapat.',
+    nextStage:3
+  },
+  park: {
+    badge:'🌳 Taman • C5',
+    title:'Pilih Tindakan',
+    caseText:'Dua kelompok kelas berselisih memilih pertunjukan budaya lokal atau budaya populer luar negeri. Apa tindakan yang paling tepat?',
+    options:[
+      ['Memilih berdasarkan suara terbanyak tanpa mendengar kelompok lain.', false],
+      ['Membatalkan kegiatan agar tidak terjadi konflik.', false],
+      ['Mendengarkan alasan semua pihak, membandingkan pilihan, lalu bermusyawarah.', true],
+      ['Meminta guru menentukan pilihan tanpa melibatkan siswa.', false]
+    ],
+    correctText:'✅ Tepat! Solusi ini menjaga persatuan sekaligus memberi ruang musyawarah.',
+    nextStage:4
+  },
+  final: {
+    badge:'🏫 Final Mission • C6',
+    title:'Final Mission — Kepribadian Pancasila',
+    caseText:'Kelas ingin membuat pertunjukan yang mencerminkan kepribadian Pancasila. Rencana mana yang paling lengkap dan dapat dilaksanakan?',
+    options:[
+      ['Ketua memilih pertunjukan sendiri agar cepat selesai.', false],
+      ['Kelompok berdiskusi, membagi tugas adil, menentukan waktu latihan, dan mengecek keberhasilan melalui keterlibatan semua anggota.', true],
+      ['Semua siswa mengikuti ide kelompok yang paling populer.', false],
+      ['Kegiatan ditunda sampai semua siswa memiliki pendapat yang sama.', false]
+    ],
+    correctText:'🏆 Luar biasa! Kamu berhasil menyelesaikan Level 1 dan menemukan nilai toleransi, musyawarah, persatuan, serta keadilan.',
+    nextStage:5
+  }
+};
+
+
+const LEVEL1_VARIANTS={
+ library:[
+  {badge:'📚 Perpustakaan • C4',title:'Tantangan Menghargai Perbedaan',caseText:'Seorang siswa menertawakan logat daerah temannya saat presentasi. Sikap apa yang paling sesuai dengan kepribadian Pancasila?',options:[['Ikut tertawa agar suasana tidak tegang.',false],['Menghentikan ejekan dan menghargai cara bicara teman.',true],['Meminta teman tidak berbicara lagi.',false],['Membiarkannya karena bukan urusan kita.',false]],correctText:'✅ Tepat! Menghargai martabat dan perbedaan sesuai dengan Pancasila.',nextStage:2},
+  {badge:'📚 Perpustakaan • C4',title:'Tantangan Sikap Toleran',caseText:'Dua teman berbeda pilihan kegiatan budaya. Salah satu memaksa temannya mengikuti pilihannya. Sikap paling tepat adalah...',options:[['Memaksa balik agar adil.',false],['Mendengarkan alasan masing-masing dan menghargai perbedaan.',true],['Tidak perlu berbicara lagi.',false],['Memilih pilihan yang paling populer.',false]],correctText:'✅ Benar. Toleransi berarti menghargai perbedaan tanpa memaksakan kehendak.',nextStage:2}],
+ teacher:[
+  {badge:'👨‍🏫 Pak Budi • Analisis',title:'Analisis Kerja Sama',caseText:'Dalam kerja kelompok, semua anggota mendapat tugas sesuai kesepakatan dan saling membantu. Mengapa perilaku tersebut mencerminkan Pancasila?',options:[['Karena tugas hanya perlu selesai.',false],['Karena mencerminkan gotong royong dan tanggung jawab bersama.',true],['Karena semua harus memiliki kemampuan sama.',false],['Karena ketua kelompok tidak perlu ikut bekerja.',false]],correctText:'✅ Tepat! Gotong royong tampak ketika anggota bekerja dan bertanggung jawab bersama.',nextStage:3},
+  {badge:'👨‍🏫 Pak Budi • Analisis',title:'Analisis Keadilan',caseText:'Ketua kelas membagi kesempatan presentasi secara merata kepada seluruh kelompok. Nilai apa yang paling terlihat?',options:[['Keadilan karena setiap kelompok mendapat kesempatan yang layak.',true],['Persaingan karena semua ingin tampil.',false],['Kebebasan tanpa aturan.',false],['Kepatuhan kepada ketua kelas.',false]],correctText:'✅ Benar. Pembagian kesempatan secara proporsional menunjukkan keadilan.',nextStage:3}],
+ park:[
+  {badge:'🌳 Taman • C5',title:'Evaluasi Pilihan',caseText:'Kelas memiliki dua ide kegiatan: pameran budaya atau pertunjukan kolaborasi. Apa cara terbaik memilihnya?',options:[['Bandingkan manfaat, keterlibatan siswa, dan kesesuaiannya dengan tujuan.',true],['Pilih yang paling murah saja.',false],['Ikuti ide teman paling populer.',false],['Serahkan seluruh keputusan kepada satu orang.',false]],correctText:'✅ Tepat! Evaluasi memerlukan kriteria yang jelas.',nextStage:4},
+  {badge:'🌳 Taman • C5',title:'Pilih Solusi Adil',caseText:'Ada siswa yang merasa tidak dilibatkan dalam persiapan kegiatan kelas. Apa solusi paling tepat?',options:[['Membiarkannya karena pembagian tugas sudah dibuat.',false],['Meninjau pembagian tugas dan memberi peran bermakna kepada semua anggota.',true],['Meminta siswa tersebut hanya menonton.',false],['Mengganti seluruh anggota kelompok.',false]],correctText:'✅ Benar. Solusi yang baik memperhatikan partisipasi dan keadilan.',nextStage:4}],
+ final:[
+  {badge:'🏫 Final Mission • C6',title:'Final Mission — Rencana Aksi',caseText:'Kelas ingin mengurangi kebiasaan saling mengejek perbedaan. Rencana mana yang paling lengkap?',options:[['Membuat kesepakatan kelas, menentukan penanggung jawab, waktu pelaksanaan, dan indikator perubahan perilaku.',true],['Memberi nasihat sekali lalu selesai.',false],['Menunggu masalah hilang sendiri.',false],['Mengandalkan guru untuk menyelesaikan semuanya.',false]],correctText:'🏆 Tepat! Rencana lengkap memuat tindakan, pelaksana, waktu, dan indikator.',nextStage:5},
+  {badge:'🏫 Final Mission • C6',title:'Final Mission — Aksi Kelas',caseText:'Kelas ingin menumbuhkan budaya musyawarah. Rancangan mana yang paling dapat dilaksanakan?',options:[['Menetapkan forum kelas mingguan, fasilitator, jadwal, dan indikator partisipasi.',true],['Meminta semua siswa selalu setuju.',false],['Membiarkan ketua mengambil semua keputusan.',false],['Mengadakan rapat hanya saat konflik besar.',false]],correctText:'🏆 Benar! Rancangan tersebut jelas, terukur, dan dapat dipantau.',nextStage:5}]
+};
+function getLevel1Question(id){return pickSessionQuestion('L1-'+id,[QUIZZES[id],...(LEVEL1_VARIANTS[id]||[])]);}
+
+function openQuiz(id){
+  activeQuiz=id;
+  const q=getLevel1Question(id);
+  quizBadge.textContent=q.badge;
+  quizTitle.textContent=q.title;
+  quizCase.textContent=q.caseText;
+  quizFeedback.textContent='';
+  quizFeedback.className='quiz-feedback';
+  quizOptions.innerHTML='';
+  shuffledOptions(q.options).forEach(([label,correct],i)=>{
+    const btn=document.createElement('button');
+    btn.className='quiz-option';
+    btn.textContent=String.fromCharCode(65+i)+'. '+label;
+    btn.addEventListener('click',()=>answerQuiz(btn,correct,q));
+    quizOptions.appendChild(btn);
+  });
+  quizModal.classList.remove('hidden');
+}
+
+function answerQuiz(btn,correct,q){
+  const buttons=[...quizOptions.querySelectorAll('.quiz-option')];
+  buttons.forEach(b=>b.disabled=true);
+  if(correct){
+    btn.classList.add('correct');
+    quizFeedback.textContent=q.correctText;
+    quizFeedback.className='quiz-feedback good';
+    playSfx('correct');
+    setTimeout(()=>{
+      quizModal.classList.add('hidden');
+      state.stage=q.nextStage;
+      updateHUD();
+      if(state.stage===5) completeLevel();
+    },1250);
+  }else{
+    btn.classList.add('wrong');
+    quizFeedback.textContent='Belum tepat. Baca kembali situasi dan perhatikan nilai Pancasila yang paling relevan.';
+    quizFeedback.className='quiz-feedback bad';
+    state.mistakes++;
+    playSfx('wrong');
+    setTimeout(()=>{
+      buttons.forEach(b=>{b.disabled=false;b.classList.remove('wrong')});
+      quizFeedback.textContent='Coba sekali lagi.';
+    },1000);
+  }
+}
+
+function completeLevel(){
+  missionTitle.textContent='Level 1 Selesai!';
+  localStorage.setItem('pancaquest_level1', JSON.stringify({
+    completed:true,
+    xp:100,
+    completed_at:new Date().toISOString()
+  }));
+
+  // Belum menandai seluruh PancaQuest selesai, karena masih ada Level 2–4.
+  localStorage.setItem('pancaquest_adventure_progress', JSON.stringify({
+    currentLevel:2,
+    level1Completed:true,
+    totalXp:100,
+    updated_at:new Date().toISOString()
+  }));
+
+  updateQuestMarkers();
+  levelCompleteModal.classList.remove('hidden');
+}
+
+
+function startLevel2Preview(){
+  levelCompleteModal.classList.add('hidden');
+
+  state.currentLevel = 2;
+  state.level2Collected = [];
+  state.totalXp = 100;
+
+  document.querySelector('.level-top span').textContent='LEVEL 2';
+  document.querySelector('.level-top strong').textContent='Taman Nilai • Kumpulkan Nilai Baik';
+  progressBar.style.width='0%';
+  progressText.textContent='0%';
+
+  missionTitle.textContent='Level 2 • Taman Nilai';
+  missionText.textContent='Kumpulkan 4 nilai positif dan hindari perilaku negatif. Sentuh nilai positif untuk mengambilnya.';
+  xpText.textContent='100 XP';
+
+  // Switch actual map
+  gameArea.classList.add('level2-active');
+  level2Scene.classList.remove('hidden');
+
+  // Reset positions of collectibles
+  document.querySelectorAll('.good-value').forEach(el=>el.classList.remove('collected'));
+  l2CollectedText.textContent='0';
+  l2Message.textContent='🌳 Bergeraklah di taman dan sentuh 4 nilai positif.';
+
+  // Move character to Level 2 spawn point.
+  state.x = 48;
+  state.y = 76;
+  updatePlayer();
+
+  localStorage.setItem('pancaquest_adventure_progress', JSON.stringify({
+    currentLevel:2,
+    level1Completed:true,
+    level2Completed:false,
+    totalXp:100,
+    updated_at:new Date().toISOString()
+  }));
+}
+
+goLevel2Btn.addEventListener('click', startLevel2Preview);
+
+
+function rectDistanceBetween(a,b){
+  const ra=a.getBoundingClientRect(), rb=b.getBoundingClientRect();
+  const ax=ra.left+ra.width/2, ay=ra.top+ra.height/2;
+  const bx=rb.left+rb.width/2, by=rb.top+rb.height/2;
+  return Math.hypot(ax-bx, ay-by);
+}
+
+function checkLevel2Collisions(){
+  if(state.currentLevel!==2 || state.paused) return;
+
+  const now=Date.now();
+
+  document.querySelectorAll('.good-value:not(.collected)').forEach(el=>{
+    if(rectDistanceBetween(player,el) < 64){
+      collectGoodValue(el);
+    }
+  });
+
+  document.querySelectorAll('.hazard-orb').forEach(el=>{
+    if(rectDistanceBetween(player,el) < 62 && now-state.lastHazardHit>1100){
+      state.lastHazardHit=now;
+      hitHazard(el);
+    }
+  });
+}
+
+function collectGoodValue(el){
+  const id=el.dataset.id;
+  if(state.level2Collected.includes(id)) return;
+
+  state.level2Collected.push(id);
+  el.classList.add('collected');
+
+  const count=state.level2Collected.length;
+  l2CollectedText.textContent=String(count);
+
+  state.totalXp = 100 + count*6 + (count===4 ? 1 : 0); // 125 max after Level 2
+  xpText.textContent=state.totalXp+' XP';
+
+  const pct=Math.round(count/4*100);
+  progressBar.style.width=pct+'%';
+  progressText.textContent=pct+'%';
+
+  l2Message.textContent=`✅ ${el.dataset.value} ditemukan! (${count}/4)`;
+  playSfx('collect');
+
+  if(count===4){
+    setTimeout(completeLevel2,700);
+  }
+}
+
+function hitHazard(el){
+  el.classList.add('hit');
+  setTimeout(()=>el.classList.remove('hit'),400);
+
+  l2Message.textContent=`⚠️ Hindari ${el.dataset.hazard}. Cari nilai positif di sekitarmu.`;
+  state.mistakes++;
+  playSfx('wrong');
+
+  // small pushback
+  state.x = clamp(state.x - 2.3,2,94);
+  state.y = clamp(state.y + 1.4,7,84);
+  updatePlayer();
+}
+
+function completeLevel2(){
+  state.currentLevel=2;
+  state.totalXp=125;
+  xpText.textContent='125 XP';
+  progressBar.style.width='100%';
+  progressText.textContent='100%';
+  missionTitle.textContent='Level 2 Selesai!';
+  missionText.textContent='Kamu telah mengumpulkan empat nilai positif. Level 3 siap dibuka.';
+  l2TotalXp.textContent='125 XP';
+
+  localStorage.setItem('pancaquest_adventure_progress', JSON.stringify({
+    currentLevel:3,
+    level1Completed:true,
+    level2Completed:true,
+    totalXp:125,
+    updated_at:new Date().toISOString()
+  }));
+
+  level2CompleteModal.classList.remove('hidden');
+  playSfx('level');
+}
+
+goLevel3Btn.addEventListener('click', startLevel3);
+
+function startLevel3(){
+  level2CompleteModal.classList.add('hidden');
+
+  state.currentLevel = 3;
+  state.level3Step = 0;
+  state.totalXp = 125;
+
+  gameArea.classList.remove('level2-active');
+  gameArea.classList.add('level3-active');
+  level2Scene.classList.add('hidden');
+  level3Scene.classList.remove('hidden');
+
+  document.querySelector('.level-top span').textContent='LEVEL 3';
+  document.querySelector('.level-top strong').textContent='Ruang Musyawarah • Pilih Solusinya';
+  progressBar.style.width='0%';
+  progressText.textContent='0%';
+  xpText.textContent='125 XP';
+
+  missionTitle.textContent='Level 3 • Ruang Musyawarah';
+  missionText.textContent='Selesaikan 3 tahap: dengarkan semua pihak, bandingkan alternatif, lalu putuskan bersama.';
+  l3DoneText.textContent='0';
+  l3Message.textContent='🗣️ Mulailah dari titik 1: Dengarkan Semua Pihak.';
+
+  document.querySelectorAll('.decision-point').forEach((el,i)=>{
+    el.classList.remove('completed');
+    el.classList.toggle('locked', i!==0);
+    const small=el.querySelector('small');
+    if(i===0) small.textContent='Dekati lalu E / AKSI';
+    if(i===1) small.textContent='Selesaikan tahap 1';
+    if(i===2) small.textContent='Selesaikan tahap 2';
+  });
+
+  state.x=22; state.y=66; updatePlayer();
+
+  localStorage.setItem('pancaquest_adventure_progress', JSON.stringify({
+    currentLevel:3,
+    level1Completed:true,
+    level2Completed:true,
+    level3Completed:false,
+    totalXp:125,
+    updated_at:new Date().toISOString()
+  }));
+
+  playSfx('level');
+}
+
+
+// =============================================================
+// AUDIO ENGINE — procedural (no external MP3)
+// =============================================================
+let audioCtx=null;
+let masterGain=null;
+let musicTimer=null;
+let musicStep=0;
+
+function ensureAudio(){
+  if(!state.audioEnabled) return;
+  if(!audioCtx){
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC) return;
+    audioCtx=new AC();
+    masterGain=audioCtx.createGain();
+    masterGain.gain.value=.16;
+    masterGain.connect(audioCtx.destination);
+  }
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  if(!state.audioStarted){
+    state.audioStarted=true;
+    startBackgroundMusic();
+    document.getElementById('soundBtn')?.classList.add('sound-active');
+  }
+}
+
+function tone(freq,duration=.12,type='sine',volume=.12,when=0){
+  if(!state.audioEnabled) return;
+  ensureAudio();
+  if(!audioCtx||!masterGain) return;
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+  osc.type=type; osc.frequency.value=freq;
+  gain.gain.setValueAtTime(volume,audioCtx.currentTime+when);
+  gain.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+when+duration);
+  osc.connect(gain); gain.connect(masterGain);
+  osc.start(audioCtx.currentTime+when);
+  osc.stop(audioCtx.currentTime+when+duration+.02);
+}
+
+function playSfx(name){
+  if(!state.audioEnabled) return;
+  ensureAudio();
+  if(name==='interact'){ tone(520,.08,'sine',.18);tone(690,.09,'sine',.14,.07); }
+  if(name==='correct'){ tone(523,.12,'triangle',.18);tone(659,.12,'triangle',.16,.11);tone(784,.18,'triangle',.15,.22); }
+  if(name==='wrong'){ tone(240,.12,'sawtooth',.12);tone(185,.2,'sawtooth',.1,.11); }
+  if(name==='collect'){ tone(660,.08,'square',.1);tone(880,.12,'square',.08,.08); }
+  if(name==='level'){ tone(392,.12,'triangle',.14);tone(523,.14,'triangle',.14,.12);tone(659,.18,'triangle',.13,.25); }
+}
+
+function startBackgroundMusic(){
+  if(musicTimer) return;
+  musicTimer=setInterval(()=>{
+    if(!state.audioEnabled || !audioCtx) return;
+    const patterns={1:[261.63,329.63,392,329.63,293.66,349.23,440,349.23],2:[293.66,369.99,440,369.99,329.63,392,493.88,392],3:[220,293.66,349.23,293.66,246.94,329.63,392,329.63],4:[261.63,392,523.25,392,293.66,440,587.33,440]};
+    const pattern=patterns[state.currentLevel]||patterns[1];
+    const f=pattern[musicStep%pattern.length];
+    tone(f,.28,'triangle',.025);
+    if(musicStep%2===0) tone(f/2,.4,'sine',.018,.02);
+    musicStep++;
+  },420);
+}
+
+function stopBackgroundMusic(){
+  if(musicTimer){ clearInterval(musicTimer); musicTimer=null; }
+}
+
+['pointerdown','keydown','touchstart'].forEach(evt=>{
+  document.addEventListener(evt,()=>ensureAudio(),{once:true});
+});
+
+const originalOpenDialogue = openDialogue;
+openDialogue = function(name,text){
+  playSfx('interact');
+  originalOpenDialogue(name,text);
+};
+
+// =============================================================
+// LEVEL 3 — branching musyawarah challenges
+// =============================================================
+const LEVEL3_QUIZZES = {
+  1:{
+    badge:'🗣️ Tahap 1 • Mendengar',
+    title:'Dengarkan Semua Pihak',
+    caseText:'Kelompok A ingin menampilkan tari daerah. Kelompok B ingin menampilkan tarian populer modern. Apa langkah pertama yang paling tepat?',
+    options:[
+      ['Langsung melakukan voting agar cepat selesai.',false],
+      ['Mendengarkan alasan dan kebutuhan kedua kelompok terlebih dahulu.',true],
+      ['Ketua kelas memilih salah satu usulan.',false],
+      ['Membatalkan penampilan agar tidak terjadi perbedaan.',false]
+    ],
+    correctText:'✅ Tepat! Musyawarah dimulai dengan memberi ruang kepada semua pihak untuk menyampaikan alasan.'
+  },
+  2:{
+    badge:'⚖️ Tahap 2 • Evaluasi C5',
+    title:'Bandingkan Alternatif',
+    caseText:'Setelah mendengar kedua kelompok, kelas memiliki dua alternatif: (A) hanya tari daerah, atau (B) pertunjukan kolaborasi budaya lokal dan modern. Bagaimana cara mengevaluasinya?',
+    options:[
+      ['Pilih yang paling banyak disukai tanpa mempertimbangkan dampaknya.',false],
+      ['Bandingkan manfaat, risiko, keterlibatan semua anggota, dan kesesuaiannya dengan nilai Pancasila.',true],
+      ['Pilih usulan teman dekat agar hubungan tetap baik.',false],
+      ['Biarkan guru memutuskan semuanya.',false]
+    ],
+    correctText:'✅ Benar. Evaluasi berarti membandingkan alternatif dengan kriteria yang jelas, bukan sekadar selera.'
+  },
+  3:{
+    badge:'🤝 Tahap 3 • Keputusan',
+    title:'Putuskan Bersama',
+    caseText:'Hasil diskusi menunjukkan pertunjukan kolaborasi dapat melibatkan lebih banyak siswa dan tetap menghargai budaya lokal. Keputusan apa yang paling sesuai?',
+    options:[
+      ['Memilih kolaborasi melalui kesepakatan dan membagi peran secara adil.',true],
+      ['Tetap memilih usulan kelompok mayoritas saja.',false],
+      ['Menunda keputusan sampai semua siswa memiliki selera yang sama.',false],
+      ['Ketua kelas mengambil alih seluruh keputusan.',false]
+    ],
+    correctText:'✅ Tepat! Keputusan bersama perlu menjaga persatuan, partisipasi, dan pembagian peran yang adil.'
+  }
+};
+
+
+const LEVEL3_VARIANTS={
+ 1:[
+  {badge:'🗣️ Tahap 1 • Mendengar',title:'Dengar Sebelum Memutuskan',caseText:'Dua kelompok berbeda pendapat mengenai tema pentas kelas. Apa tindakan awal ketua kelas?',options:[['Memberi kesempatan kedua kelompok menjelaskan alasan dan kebutuhan mereka.',true],['Memilih usulan yang paling cepat.',false],['Mengikuti kelompok yang jumlahnya lebih banyak.',false],['Menunda pembahasan tanpa mendengar alasan.',false]],correctText:'✅ Benar. Mendengar semua pihak merupakan dasar musyawarah yang adil.'},
+  {badge:'🗣️ Tahap 1 • Mendengar',title:'Ruang untuk Pendapat',caseText:'Seorang anggota kelompok belum pernah menyampaikan pendapat karena selalu dipotong teman. Apa yang sebaiknya dilakukan fasilitator?',options:[['Memberinya kesempatan berbicara tanpa dipotong.',true],['Mengabaikannya agar rapat cepat selesai.',false],['Meminta ia mengikuti keputusan mayoritas.',false],['Mengakhiri diskusi.',false]],correctText:'✅ Tepat. Musyawarah membutuhkan kesempatan yang setara.'}],
+ 2:[
+  {badge:'⚖️ Tahap 2 • Evaluasi C5',title:'Bandingkan Dampak',caseText:'Pilihan A lebih cepat tetapi hanya melibatkan sedikit siswa. Pilihan B lebih lama tetapi melibatkan hampir seluruh kelas. Bagaimana menilainya?',options:[['Bandingkan manfaat, keterlibatan, waktu, dan tujuan kegiatan.',true],['Pilih yang paling cepat saja.',false],['Pilih yang disukai ketua.',false],['Tidak perlu membandingkan.',false]],correctText:'✅ Benar. Evaluasi membutuhkan beberapa kriteria yang relevan.'},
+  {badge:'⚖️ Tahap 2 • Evaluasi C5',title:'Nilai Dua Alternatif',caseText:'Satu alternatif menjaga tradisi lokal tetapi kurang melibatkan siswa. Alternatif lain memadukan budaya lokal dan modern serta memberi lebih banyak peran. Apa yang perlu dipertimbangkan?',options:[['Dampak pada persatuan, partisipasi, dan penghargaan terhadap budaya.',true],['Hanya selera pribadi.',false],['Siapa yang mengusulkan.',false],['Yang paling ramai di media sosial.',false]],correctText:'✅ Tepat. Dampak dan nilai Pancasila menjadi dasar evaluasi.'}],
+ 3:[
+  {badge:'🤝 Tahap 3 • Keputusan',title:'Kesepakatan Bersama',caseText:'Setelah membandingkan pilihan, kelas memilih solusi kolaboratif. Apa langkah berikutnya?',options:[['Menetapkan kesepakatan bersama dan membagi peran secara adil.',true],['Mengubah keputusan diam-diam.',false],['Membiarkan satu kelompok mengerjakan semuanya.',false],['Membatalkan keputusan.',false]],correctText:'✅ Benar. Kesepakatan perlu diikuti pembagian peran dan tanggung jawab.'},
+  {badge:'🤝 Tahap 3 • Keputusan',title:'Keputusan Bertanggung Jawab',caseText:'Diskusi telah menghasilkan pilihan yang dinilai paling adil. Bagaimana agar keputusan tersebut bertanggung jawab?',options:[['Tetapkan keputusan, pembagian tugas, dan mekanisme evaluasinya bersama.',true],['Cukup umumkan keputusan tanpa pembagian tugas.',false],['Serahkan seluruh pelaksanaan kepada ketua.',false],['Tidak perlu mengevaluasi hasilnya.',false]],correctText:'✅ Tepat. Keputusan yang baik perlu diterjemahkan menjadi tanggung jawab yang jelas.'}]
+};
+function getLevel3Question(step){return pickSessionQuestion('L3-'+step,[LEVEL3_QUIZZES[step],...(LEVEL3_VARIANTS[step]||[])]);}
+
+function nearDecision(el,threshold=90){ return rectDistanceBetween(player,el)<threshold; }
+
+function checkLevel3Interactions(){
+  if(state.currentLevel!==3) return;
+  const activeStep=state.level3Step+1;
+  const el=document.querySelector(`.decision-point[data-decision="${activeStep}"]`);
+  if(!el) return;
+  if(nearDecision(el,95)){
+    l3Message.textContent=`✨ Titik ${activeStep} siap. Tekan E / Space / AKSI.`;
+  }else{
+    l3Message.textContent=`🗣️ Pergi ke titik ${activeStep}: ${el.querySelector('b').textContent}.`;
+  }
+}
+
+function interactLevel3(){
+  const step=state.level3Step+1;
+  const el=document.querySelector(`.decision-point[data-decision="${step}"]`);
+  if(!el || el.classList.contains('locked')) return false;
+  if(nearDecision(el,105)){
+    openLevel3Quiz(step);
+    return true;
+  }
+  return false;
+}
+
+function openLevel3Quiz(step){
+  const q=getLevel3Question(step);
+  quizBadge.textContent=q.badge;
+  quizTitle.textContent=q.title;
+  quizCase.textContent=q.caseText;
+  quizFeedback.textContent='';
+  quizFeedback.className='quiz-feedback';
+  quizOptions.innerHTML='';
+
+  shuffledOptions(q.options).forEach(([label,correct],i)=>{
+    const btn=document.createElement('button');
+    btn.className='quiz-option';
+    btn.textContent=String.fromCharCode(65+i)+'. '+label;
+    btn.addEventListener('click',()=>{
+      const buttons=[...quizOptions.querySelectorAll('.quiz-option')];
+      buttons.forEach(b=>b.disabled=true);
+      if(correct){
+        btn.classList.add('correct');
+        quizFeedback.textContent=q.correctText;
+        quizFeedback.className='quiz-feedback good';
+        playSfx('correct');
+        setTimeout(()=>completeLevel3Step(step),1000);
+      }else{
+        btn.classList.add('wrong');
+        quizFeedback.textContent='Belum paling tepat. Perhatikan prinsip musyawarah, partisipasi, dan penghargaan terhadap semua pihak.';
+        quizFeedback.className='quiz-feedback bad';
+        state.mistakes++;
+        playSfx('wrong');
+        setTimeout(()=>{
+          buttons.forEach(b=>{b.disabled=false;b.classList.remove('wrong')});
+          quizFeedback.textContent='Coba lagi dengan mempertimbangkan dampak setiap pilihan.';
+        },950);
+      }
+    });
+    quizOptions.appendChild(btn);
+  });
+  quizModal.classList.remove('hidden');
+  playSfx('interact');
+}
+
+function completeLevel3Step(step){
+  quizModal.classList.add('hidden');
+  const current=document.querySelector(`.decision-point[data-decision="${step}"]`);
+  current?.classList.add('completed');
+  current?.classList.remove('locked');
+  if(current?.querySelector('small')) current.querySelector('small').textContent='✅ Selesai';
+
+  state.level3Step=step;
+  l3DoneText.textContent=String(step);
+
+  const pct=Math.round(step/3*100);
+  progressBar.style.width=pct+'%';
+  progressText.textContent=pct+'%';
+
+  state.totalXp=125 + Math.round(step*(25/3));
+  xpText.textContent=state.totalXp+' XP';
+
+  const next=document.querySelector(`.decision-point[data-decision="${step+1}"]`);
+  if(next){
+    next.classList.remove('locked');
+    next.querySelector('small').textContent='Dekati lalu E / AKSI';
+    l3Message.textContent=`✅ Tahap ${step} selesai. Lanjutkan ke titik ${step+1}.`;
+  }else{
+    state.totalXp=150;
+    xpText.textContent='150 XP';
+    progressBar.style.width='100%';
+    progressText.textContent='100%';
+    setTimeout(completeLevel3,650);
+  }
+}
+
+function completeLevel3(){
+  missionTitle.textContent='Level 3 Selesai!';
+  missionText.textContent='Kamu berhasil menyelesaikan proses musyawarah secara bertahap.';
+  l3TotalXp.textContent='150 XP';
+
+  localStorage.setItem('pancaquest_adventure_progress', JSON.stringify({
+    currentLevel:4,
+    level1Completed:true,
+    level2Completed:true,
+    level3Completed:true,
+    totalXp:150,
+    updated_at:new Date().toISOString()
+  }));
+  level3CompleteModal.classList.remove('hidden');
+  playSfx('level');
+}
+
+goLevel4Btn.addEventListener('click', startLevel4);
+
+const LEVEL4_SCENARIOS=[
+ {id:'respect',title:'Kelas Saling Menghargai',text:'Beberapa siswa masih saling mengejek selera budaya dan cara berbicara teman. Kelas ingin membangun kebiasaan saling menghargai.',steps:{
+  1:{badge:'🎯 Tahap 1 • Tindakan C6',title:'Pilih Tindakan Utama',caseText:'Tindakan utama apa yang paling konkret untuk memulai perubahan?',options:[['Menyusun kesepakatan kelas anti-ejekan dan praktik komunikasi saling menghargai.',true],['Menunggu sampai siswa berhenti mengejek sendiri.',false],['Melarang semua perbedaan pendapat.',false],['Hanya menempel poster tanpa tindak lanjut.',false]]},
+  2:{badge:'👥 Tahap 2 • Pelaksana',title:'Tentukan Pelaksana',caseText:'Siapa yang sebaiknya terlibat agar tindakan dapat berjalan?',options:[['Seluruh siswa dengan koordinator ketua kelas dan pendampingan guru.',true],['Ketua kelas saja.',false],['Guru saja tanpa melibatkan siswa.',false],['Hanya siswa yang pernah mengejek.',false]]},
+  3:{badge:'🕒 Tahap 3 • Waktu',title:'Tentukan Waktu',caseText:'Waktu pelaksanaan mana yang paling realistis?',options:[['Mulai minggu ini, dipantau selama dua minggu, lalu dievaluasi.',true],['Suatu saat jika ada waktu.',false],['Hanya satu hari tanpa tindak lanjut.',false],['Setelah semester berakhir.',false]]},
+  4:{badge:'📊 Tahap 4 • Indikator',title:'Tentukan Indikator Keberhasilan',caseText:'Indikator apa yang paling dapat diamati?',options:[['Berkurangnya ejekan dan meningkatnya perilaku saling menghargai saat diskusi.',true],['Semua siswa selalu memiliki pendapat yang sama.',false],['Kelas menjadi lebih sepi.',false],['Tidak ada lagi kegiatan diskusi.',false]]}
+ }},
+ {id:'deliberation',title:'Budaya Musyawarah Kelas',text:'Keputusan kelompok sering didominasi beberapa siswa sehingga anggota lain kurang terlibat. Kelas ingin membangun musyawarah yang lebih adil.',steps:{
+  1:{badge:'🎯 Tahap 1 • Tindakan C6',title:'Pilih Tindakan Utama',caseText:'Tindakan apa yang paling tepat?',options:[['Membuat forum musyawarah dengan giliran bicara dan pencatatan usulan.',true],['Memberikan seluruh keputusan kepada ketua kelas.',false],['Melakukan voting tanpa diskusi.',false],['Menghindari pembahasan yang berbeda pendapat.',false]]},
+  2:{badge:'👥 Tahap 2 • Pelaksana',title:'Tentukan Pelaksana',caseText:'Siapa yang sebaiknya menjalankan forum tersebut?',options:[['Seluruh anggota kelas dengan fasilitator bergilir dan guru sebagai pendamping.',true],['Satu siswa paling aktif saja.',false],['Guru saja.',false],['Hanya pengurus kelas.',false]]},
+  3:{badge:'🕒 Tahap 3 • Waktu',title:'Tentukan Waktu',caseText:'Waktu mana yang paling terencana?',options:[['Dilaksanakan setiap ada keputusan kelompok dan dievaluasi setiap akhir minggu.',true],['Hanya jika terjadi pertengkaran.',false],['Tanpa jadwal yang jelas.',false],['Sekali setahun.',false]]},
+  4:{badge:'📊 Tahap 4 • Indikator',title:'Tentukan Indikator Keberhasilan',caseText:'Indikator mana yang menunjukkan forum berjalan baik?',options:[['Lebih banyak siswa menyampaikan pendapat dan keputusan disepakati dengan alasan yang jelas.',true],['Rapat berlangsung paling singkat.',false],['Ketua selalu menang dalam keputusan.',false],['Tidak ada pendapat yang berbeda.',false]]}
+ }},
+ {id:'culture',title:'Pentas Budaya yang Memersatukan',text:'Kelas ingin menyelenggarakan pentas yang tetap menghargai budaya lokal sekaligus memberi ruang kreativitas modern.',steps:{
+  1:{badge:'🎯 Tahap 1 • Tindakan C6',title:'Pilih Tindakan Utama',caseText:'Tindakan utama apa yang paling sesuai?',options:[['Merancang pertunjukan kolaboratif yang memadukan unsur lokal dan modern secara saling menghargai.',true],['Menghapus seluruh unsur modern.',false],['Menggunakan budaya populer saja.',false],['Membatalkan pentas karena ada perbedaan selera.',false]]},
+  2:{badge:'👥 Tahap 2 • Pelaksana',title:'Tentukan Pelaksana',caseText:'Siapa yang perlu terlibat?',options:[['Tim lintas minat: penampil, penata musik, dekorasi, dokumentasi, dan koordinator.',true],['Hanya siswa yang pandai menari.',false],['Guru yang mengerjakan semuanya.',false],['Satu kelompok budaya saja.',false]]},
+  3:{badge:'🕒 Tahap 3 • Waktu',title:'Tentukan Waktu',caseText:'Jadwal mana yang paling memungkinkan?',options:[['Perencanaan hari pertama, latihan bertahap selama satu minggu, lalu evaluasi sebelum tampil.',true],['Latihan hanya sesaat sebelum tampil.',false],['Tidak perlu jadwal.',false],['Menunggu semua siswa memiliki waktu kosong bersamaan.',false]]},
+  4:{badge:'📊 Tahap 4 • Indikator',title:'Tentukan Indikator Keberhasilan',caseText:'Indikator keberhasilan yang paling tepat adalah...',options:[['Semua tim terlibat, unsur budaya lokal dihargai, dan pertunjukan selesai sesuai kesepakatan.',true],['Pertunjukan mendapat tepuk tangan paling keras.',false],['Hanya satu kelompok yang tampil dominan.',false],['Tidak ada unsur budaya yang berbeda.',false]]}
+ }}
+];
+
+function startLevel4(){
+ level3CompleteModal.classList.add('hidden'); state.currentLevel=4; state.level4Step=0; state.totalXp=150; state.level4Plan={}; state.level4Scenario=pickRandom(LEVEL4_SCENARIOS);
+ gameArea.classList.remove('level3-active'); gameArea.classList.add('level4-active'); level3Scene.classList.add('hidden'); level4Scene.classList.remove('hidden');
+ document.querySelector('.level-top span').textContent='LEVEL 4'; document.querySelector('.level-top strong').textContent='Kelas Aksi • Rancang Tindakan Nyata'; progressBar.style.width='0%'; progressText.textContent='0%'; xpText.textContent='150 XP';
+ scenarioTitle.textContent=state.level4Scenario.title; scenarioText.textContent=state.level4Scenario.text; missionTitle.textContent='Level 4 • Kelas Aksi'; missionText.textContent='Lengkapi 4 unsur rancangan tindakan: tindakan, pelaksana, waktu, dan indikator.'; l4DoneText.textContent='0'; l4Message.textContent='🛠️ Mulailah dari stasiun 1: Tindakan.';
+ document.querySelectorAll('.action-station').forEach((el,i)=>{el.classList.remove('completed');el.classList.toggle('locked',i!==0);const s=el.querySelector('small');s.textContent=i===0?'Dekati lalu E / AKSI':`Selesaikan tahap ${i}`;});
+ state.x=18;state.y=68;updatePlayer();
+ localStorage.setItem('pancaquest_adventure_progress',JSON.stringify({currentLevel:4,level1Completed:true,level2Completed:true,level3Completed:true,level4Completed:false,scenario:state.level4Scenario.id,totalXp:150,updated_at:new Date().toISOString()})); playSfx('level');
+}
+function nearActionStation(el,t=100){return rectDistanceBetween(player,el)<t;}
+function checkLevel4Interactions(){if(state.currentLevel!==4)return;const step=state.level4Step+1,el=document.querySelector(`.action-station[data-action-step="${step}"]`);if(!el)return;l4Message.textContent=nearActionStation(el,105)?`✨ Stasiun ${step} siap. Tekan E / Space / AKSI.`:`🛠️ Pergi ke stasiun ${step}: ${el.querySelector('b').textContent}.`;}
+function interactLevel4(){const step=state.level4Step+1,el=document.querySelector(`.action-station[data-action-step="${step}"]`);if(!el||el.classList.contains('locked'))return false;if(nearActionStation(el,115)){openLevel4Quiz(step);return true;}return false;}
+function openLevel4Quiz(step){const q=state.level4Scenario.steps[step];quizBadge.textContent=q.badge;quizTitle.textContent=q.title;quizCase.textContent=q.caseText;quizFeedback.textContent='';quizFeedback.className='quiz-feedback';quizOptions.innerHTML='';shuffledOptions(q.options).forEach(([label,correct],i)=>{const btn=document.createElement('button');btn.className='quiz-option';btn.textContent=String.fromCharCode(65+i)+'. '+label;btn.addEventListener('click',()=>{const buttons=[...quizOptions.querySelectorAll('.quiz-option')];buttons.forEach(b=>b.disabled=true);if(correct){btn.classList.add('correct');quizFeedback.textContent='✅ Pilihan tepat. Unsur rancangan berhasil ditambahkan.';quizFeedback.className='quiz-feedback good';state.level4Plan[step]=label;playSfx('correct');setTimeout(()=>completeLevel4Step(step),900);}else{btn.classList.add('wrong');state.mistakes++;quizFeedback.textContent='Belum paling tepat. Pilih jawaban yang paling konkret, realistis, dan dapat diamati.';quizFeedback.className='quiz-feedback bad';playSfx('wrong');setTimeout(()=>{buttons.forEach(b=>{b.disabled=false;b.classList.remove('wrong')});quizFeedback.textContent='Coba lagi.';},900);}});quizOptions.appendChild(btn);});quizModal.classList.remove('hidden');playSfx('interact');}
+function completeLevel4Step(step){quizModal.classList.add('hidden');const cur=document.querySelector(`.action-station[data-action-step="${step}"]`);cur?.classList.add('completed');cur?.classList.remove('locked');if(cur?.querySelector('small'))cur.querySelector('small').textContent='✅ Selesai';state.level4Step=step;l4DoneText.textContent=String(step);const pct=Math.round(step/4*100);progressBar.style.width=pct+'%';progressText.textContent=pct+'%';state.totalXp=150+Math.round(step*25/4);xpText.textContent=state.totalXp+' XP';const next=document.querySelector(`.action-station[data-action-step="${step+1}"]`);if(next){next.classList.remove('locked');next.querySelector('small').textContent='Dekati lalu E / AKSI';}else{state.totalXp=175;xpText.textContent='175 XP';progressBar.style.width='100%';progressText.textContent='100%';setTimeout(completeAdventure,700);}}
+function calculateFinalScore(){return Math.max(70,100-state.mistakes*4);}
+function badgeFromScore(s){if(s>=95)return '🏅 Pancasila Pathfinder';if(s>=85)return '💡 Civic Problem Solver';if(s>=75)return '🔎 Value Detective';return '🌱 Pancasila Explorer';}
+function completeAdventure(){const score=calculateFinalScore(),badge=badgeFromScore(score);missionTitle.textContent='PancaQuest Selesai!';missionText.textContent='Seluruh level selesai. Simpan hasil untuk kembali ke PancaPath.';finalBadge.textContent=badge;finalAdventureXp.textContent='175 XP';finalScore.textContent=score+' / 100';finalScenario.textContent=state.level4Scenario.title;finalAction.textContent=state.level4Plan[1]||'—';finalActor.textContent=state.level4Plan[2]||'—';finalTime.textContent=state.level4Plan[3]||'—';finalIndicator.textContent=state.level4Plan[4]||'—';const q={completed:true,xp:score,badge,adventureXp:175,mistakes:state.mistakes,scenario:state.level4Scenario.title,plan:{action:state.level4Plan[1],actor:state.level4Plan[2],time:state.level4Plan[3],indicator:state.level4Plan[4]},route:'pancaquest-adventure-v1.6',completed_at:new Date().toISOString()};localStorage.setItem('pancapath_quest',JSON.stringify(q));localStorage.setItem('pancaquest_adventure_progress',JSON.stringify({currentLevel:4,level1Completed:true,level2Completed:true,level3Completed:true,level4Completed:true,totalXp:175,normalizedScore:score,badge,updated_at:new Date().toISOString()}));adventureCompleteModal.classList.remove('hidden');playSfx('level');}
+saveReturnBtn.addEventListener('click',()=>{const standalone=location.pathname.toLowerCase().includes('standalone');if(standalone){adventureCompleteModal.classList.add('hidden');openDialogue('✅ Data Tersimpan','Hasil PancaQuest sudah tersimpan di perangkat. Saat dipasang di PancaPath, tombol ini kembali ke halaman utama.');}else window.location.href='../index.html#mission';});
+restartRandomBtn.addEventListener('click',()=>location.reload());
+
+const soundBtn=document.getElementById('soundBtn');
+soundBtn.addEventListener('click',e=>{
+  state.audioEnabled=!state.audioEnabled;
+  if(state.audioEnabled){
+    e.currentTarget.textContent='🔊';
+    ensureAudio();
+    startBackgroundMusic();
+    e.currentTarget.classList.add('sound-active');
+    playSfx('interact');
+  }else{
+    e.currentTarget.textContent='🔇';
+    stopBackgroundMusic();
+    e.currentTarget.classList.remove('sound-active');
+  }
+});
+
+closeQuizBtn.addEventListener('click',()=>quizModal.classList.add('hidden'));
+actionBtn.addEventListener('click',interact);
+document.getElementById('missionBtn').addEventListener('click',()=>openDialogue('Misi Saat Ini',missionText.textContent));
+
+function togglePause(){
+  state.paused=!state.paused;
+  pauseModal.classList.toggle('hidden',!state.paused);
+}
+pauseBtn.addEventListener('click',togglePause);
+resumeBtn.addEventListener('click',()=>{state.paused=false;pauseModal.classList.add('hidden')});
+resetBtn.addEventListener('click',()=>{localStorage.removeItem('pancaquest_level1');localStorage.removeItem('pancaquest_adventure_progress');localStorage.removeItem('pancapath_quest');location.reload();});
+
+fullscreenBtn.addEventListener('click',()=>{
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+});
+
+// Joystick
+const joystick = document.getElementById('joystick');
+const knob = document.getElementById('joystickKnob');
+let joyActive=false, joyCenter={x:0,y:0};
+
+function joyStart(clientX,clientY){
+  const r=joystick.getBoundingClientRect();
+  joyCenter={x:r.left+r.width/2,y:r.top+r.height/2};
+  joyActive=true; joyMove(clientX,clientY);
+}
+function joyMove(clientX,clientY){
+  if(!joyActive)return;
+  let dx=clientX-joyCenter.x, dy=clientY-joyCenter.y;
+  const max=34, len=Math.hypot(dx,dy)||1;
+  if(len>max){dx=dx/len*max;dy=dy/len*max}
+  knob.style.transform=`translate(${30+dx}px,${30+dy}px)`;
+  move(dx/max*.75,dy/max*.75);
+}
+function joyEnd(){joyActive=false;knob.style.transform='translate(30px,30px)'}
+joystick.addEventListener('pointerdown',e=>{joystick.setPointerCapture(e.pointerId);joyStart(e.clientX,e.clientY)});
+joystick.addEventListener('pointermove',e=>joyMove(e.clientX,e.clientY));
+joystick.addEventListener('pointerup',joyEnd);
+joystick.addEventListener('pointercancel',joyEnd);
+
+document.getElementById('guideBtn').addEventListener('click',()=>{
+  alert('Laptop: WASD / panah untuk bergerak, E atau Space untuk interaksi.\\nHP: gunakan joystick analog dan tombol AKSI.\\nIkuti tanda ! dan teks Misi Saat Ini.');
+});
+document.getElementById('miniExpand').addEventListener('click',()=>openDialogue('Peta Sekolah','Urutan Level 1: Nadia → Perpustakaan → Pak Budi → Taman → Sekolah (Final Mission).'));
+
+updatePlayer();
+updateHUD();
+updateNearPrompts();
+</script>
+</body>
+</html>
