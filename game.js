@@ -32,6 +32,9 @@ const schoolArea = document.getElementById('schoolArea');
 const libraryQuestMark = document.getElementById('libraryQuestMark');
 const parkQuestMark = document.getElementById('parkQuestMark');
 const schoolQuestMark = document.getElementById('schoolQuestMark');
+const libraryPrompt = document.getElementById('libraryPrompt');
+const parkPrompt = document.getElementById('parkPrompt');
+const schoolPrompt = document.getElementById('schoolPrompt');
 
 let state = {
   x: 47,
@@ -49,36 +52,12 @@ let last = performance.now();
 let activeQuiz = null;
 
 const STAGES = [
-  {
-    mission: 'Temui Nadia untuk menerima misi pertama.',
-    progress: 25,
-    xp: 0
-  },
-  {
-    mission: 'Pergi ke Perpustakaan dan selesaikan Tantangan Toleransi.',
-    progress: 40,
-    xp: 20
-  },
-  {
-    mission: 'Temui Pak Budi dan analisis contoh perilaku Pancasila.',
-    progress: 55,
-    xp: 35
-  },
-  {
-    mission: 'Pergi ke Taman dan pilih tindakan yang mencerminkan musyawarah.',
-    progress: 70,
-    xp: 50
-  },
-  {
-    mission: 'Kembali ke depan Sekolah untuk menyelesaikan Final Mission.',
-    progress: 85,
-    xp: 70
-  },
-  {
-    mission: 'Level 1 selesai. Kamu telah menemukan nilai utama Pancasila!',
-    progress: 100,
-    xp: 100
-  }
+  { title:'Kenali Nilai Pancasila', mission:'Temui Nadia untuk menerima misi pertama.', progress:25, xp:0 },
+  { title:'Tantangan Perpustakaan', mission:'Pergi ke Perpustakaan. Berdiri dekat bangunan lalu tekan E / Space / AKSI.', progress:40, xp:20 },
+  { title:'Analisis bersama Pak Budi', mission:'Temui Pak Budi dan analisis contoh perilaku Pancasila.', progress:55, xp:35 },
+  { title:'Tantangan Taman', mission:'Pergi ke Taman dan pilih tindakan yang mencerminkan musyawarah.', progress:70, xp:50 },
+  { title:'Final Mission', mission:'Kembali ke depan Sekolah untuk menyelesaikan Final Mission.', progress:85, xp:70 },
+  { title:'Level 1 Selesai!', mission:'Kamu telah menemukan nilai toleransi, musyawarah, persatuan, dan keadilan.', progress:100, xp:100 }
 ];
 
 function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
@@ -90,6 +69,7 @@ function updateHUD(){
   xpText.textContent = state.xp + ' XP';
   progressBar.style.width = state.progress + '%';
   progressText.textContent = state.progress + '%';
+  missionTitle.textContent = s.title;
   missionText.textContent = s.mission;
   updateQuestMarkers();
 }
@@ -130,6 +110,7 @@ function frame(now){
   if(keys['a']||keys['arrowleft']) dx -= speed*dt/16;
   if(keys['d']||keys['arrowright']) dx += speed*dt/16;
   if(dx||dy) move(dx,dy); else player.classList.remove('moving');
+  updateNearPrompts();
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
@@ -157,6 +138,27 @@ function near(el, threshold=160){
   return distanceTo(el) < threshold;
 }
 
+// Mengukur jarak karakter ke TEPI objek, bukan hanya ke titik tengah.
+// Ini membuat bangunan besar seperti Perpustakaan lebih mudah diinteraksikan.
+function distanceToRect(el){
+  const p = player.getBoundingClientRect();
+  const r = el.getBoundingClientRect();
+  const px = p.left + p.width/2;
+  const py = p.top + p.height/2;
+  const cx = Math.max(r.left, Math.min(px, r.right));
+  const cy = Math.max(r.top, Math.min(py, r.bottom));
+  return Math.hypot(px-cx, py-cy);
+}
+function nearRect(el, threshold=85){
+  return distanceToRect(el) <= threshold;
+}
+
+function updateNearPrompts(){
+  libraryPrompt.classList.toggle('hidden', !(state.stage===1 && nearRect(libraryArea,110)));
+  parkPrompt.classList.toggle('hidden', !(state.stage===3 && nearRect(parkArea,110)));
+  schoolPrompt.classList.toggle('hidden', !(state.stage===4 && nearRect(schoolArea,120)));
+}
+
 function interact(){
   const nadia=document.querySelector('.npc-nadia');
   const teacher=document.querySelector('.npc-teacher');
@@ -170,7 +172,7 @@ function interact(){
     return;
   }
 
-  if(state.stage===1 && near(libraryArea,190)){
+  if(state.stage===1 && nearRect(libraryArea,115)){
     openQuiz('library');
     return;
   }
@@ -180,12 +182,12 @@ function interact(){
     return;
   }
 
-  if(state.stage===3 && near(parkArea,190)){
+  if(state.stage===3 && nearRect(parkArea,115)){
     openQuiz('park');
     return;
   }
 
-  if(state.stage===4 && near(schoolArea,215)){
+  if(state.stage===4 && nearRect(schoolArea,130)){
     openQuiz('final');
     return;
   }
@@ -195,7 +197,7 @@ function interact(){
     openDialogue('Nadia','Lanjutkan misi sesuai petunjuk di kiri bawah. Tanda ! menunjukkan lokasi berikutnya.');
     return;
   }
-  if(near(libraryArea,190)){
+  if(nearRect(libraryArea,115)){
     openDialogue('Perpustakaan', state.stage < 1
       ? 'Temui Nadia terlebih dahulu untuk menerima misi.'
       : 'Tantangan di Perpustakaan sudah selesai. Lanjutkan ke lokasi berikutnya.');
@@ -207,14 +209,14 @@ function interact(){
       : 'Bagus. Ikuti misi berikutnya dan terus gunakan alasan berdasarkan nilai Pancasila.');
     return;
   }
-  if(near(parkArea,190)){
+  if(nearRect(parkArea,115)){
     openDialogue('Taman', state.stage < 3
       ? 'Masih ada misi sebelumnya yang perlu kamu selesaikan.'
       : 'Kamu sudah menyelesaikan misi di Taman.');
     return;
   }
 
-  openDialogue('Petunjuk','Ikuti teks “Misi Saat Ini” dan dekati objek atau NPC yang bertanda !, lalu tekan E / Space / tombol AKSI.');
+  openDialogue('Petunjuk','Ikuti “Misi Saat Ini”. Untuk bangunan, cukup berdiri di dekat tepi bangunan sampai muncul label E / AKSI, lalu tekan tombol interaksi.');
 }
 
 function openDialogue(name,text){
@@ -228,7 +230,6 @@ nextDialogue.addEventListener('click',()=>{
   if(dialogueName.textContent==='Nadia' && state.stage===0){
     state.stage=1;
     updateHUD();
-    missionTitle.textContent='Tantangan Perpustakaan';
   }
   closeDialogue();
 });
@@ -318,9 +319,6 @@ function answerQuiz(btn,correct,q){
       quizModal.classList.add('hidden');
       state.stage=q.nextStage;
       updateHUD();
-      if(state.stage===2) missionTitle.textContent='Analisis bersama Pak Budi';
-      if(state.stage===3) missionTitle.textContent='Tantangan Taman';
-      if(state.stage===4) missionTitle.textContent='Final Mission';
       if(state.stage===5) completeLevel();
     },1250);
   }else{
@@ -405,3 +403,4 @@ document.getElementById('miniExpand').addEventListener('click',()=>openDialogue(
 
 updatePlayer();
 updateHUD();
+updateNearPrompts();

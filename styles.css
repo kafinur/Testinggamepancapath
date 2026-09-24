@@ -232,3 +232,12 @@ kbd{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-rig
 .quiz-option:disabled{cursor:default;opacity:.96}
 .quiz-feedback{min-height:28px;margin-top:13px;font-weight:850}
 .quiz-feedback.good{color:#15803d}.quiz-feedback.bad{color:#b91c1c}
+
+.near-prompt{
+  position:absolute;left:50%;bottom:-38px;transform:translateX(-50%);
+  z-index:45;background:#123a8f;color:white;border:2px solid #fff;
+  border-radius:999px;padding:6px 11px;font-size:10px;font-weight:900;
+  box-shadow:0 8px 20px rgba(14,48,120,.24);white-space:nowrap;
+  animation:promptPulse .85s ease-in-out infinite alternate;
+}
+@keyframes promptPulse{to{transform:translateX(-50%) scale(1.08)}}

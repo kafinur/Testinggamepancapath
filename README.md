@@ -1,22 +1,17 @@
-# PancaQuest Adventure Semi-3D v1.1 — Level 1 Fixed
+# PancaQuest Adventure Semi-3D v1.2 — Interaction Fixed
 
-Perbaikan utama:
-- Perpustakaan sekarang benar-benar interaktif.
-- Setelah berbicara dengan Nadia, tanda `!` muncul di Perpustakaan.
-- Dekati Perpustakaan dan tekan E / Space / AKSI untuk membuka Tantangan Toleransi.
-- Setelah berhasil, misi berpindah ke Pak Budi.
-- Lalu berpindah ke Taman.
-- Terakhir kembali ke Sekolah untuk Final Mission.
-- Level 1 kini dapat diselesaikan sampai 100 XP.
+Perbaikan dari v1.1:
+- Interaksi Perpustakaan/Taman/Sekolah kini dihitung dari **tepi bangunan**, bukan titik tengah bangunan.
+- Area interaksi dibuat lebih luas dan ramah siswa.
+- Saat pemain cukup dekat dengan lokasi aktif muncul label **E / AKSI**.
+- Judul pada kartu “Misi Saat Ini” otomatis mengikuti tahapan.
+- Tanda `!` tetap menunjukkan lokasi aktif.
+- Alur Level 1 tetap: Nadia → Perpustakaan → Pak Budi → Taman → Final Sekolah.
 
-## Urutan Level 1
-Nadia → Perpustakaan → Pak Budi → Taman → Final Mission Sekolah.
-
-## Kontrol
-Laptop: WASD / Arrow, E / Space.
-HP: joystick analog + tombol AKSI.
-
-## Data
-Setelah Level 1 selesai, hasil tersimpan ke `localStorage` sebagai:
-- `pancaquest_level1`
-- `pancapath_quest`
+Cara pada tahap Perpustakaan:
+1. Selesai berbicara dengan Nadia.
+2. Pergi ke bangunan Perpustakaan.
+3. Tidak perlu menempel tepat ke tengah bangunan.
+4. Saat cukup dekat, akan muncul label `E / AKSI`.
+5. Tekan E, Space, atau tombol AKSI.
+6. Tantangan Toleransi akan terbuka.
