@@ -35,6 +35,9 @@ const schoolQuestMark = document.getElementById('schoolQuestMark');
 const libraryPrompt = document.getElementById('libraryPrompt');
 const parkPrompt = document.getElementById('parkPrompt');
 const schoolPrompt = document.getElementById('schoolPrompt');
+const level2Portal = document.getElementById('level2Portal');
+const levelCompleteModal = document.getElementById('levelCompleteModal');
+const goLevel2Btn = document.getElementById('goLevel2Btn');
 
 let state = {
   x: 47,
@@ -57,7 +60,7 @@ const STAGES = [
   { title:'Analisis bersama Pak Budi', mission:'Temui Pak Budi dan analisis contoh perilaku Pancasila.', progress:55, xp:35 },
   { title:'Tantangan Taman', mission:'Pergi ke Taman dan pilih tindakan yang mencerminkan musyawarah.', progress:70, xp:50 },
   { title:'Final Mission', mission:'Kembali ke depan Sekolah untuk menyelesaikan Final Mission.', progress:85, xp:70 },
-  { title:'Level 1 Selesai!', mission:'Kamu telah menemukan nilai toleransi, musyawarah, persatuan, dan keadilan.', progress:100, xp:100 }
+  { title:'Level 1 Selesai!', mission:'Level berikutnya terbuka. Pergi ke portal LEVEL 2 di Taman atau tekan tombol Lanjut ke Level 2.', progress:100, xp:100 }
 ];
 
 function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
@@ -78,6 +81,7 @@ function updateQuestMarkers(){
   libraryQuestMark.classList.toggle('hidden', state.stage !== 1);
   parkQuestMark.classList.toggle('hidden', state.stage !== 3);
   schoolQuestMark.classList.toggle('hidden', state.stage !== 4);
+  level2Portal.classList.toggle('hidden', state.stage !== 5);
   document.querySelector('.npc-nadia .quest-mark')?.classList.toggle('hidden', state.stage !== 0);
   document.querySelector('.npc-teacher .talk-bubble')?.classList.toggle('hidden', state.stage !== 2);
 }
@@ -192,9 +196,19 @@ function interact(){
     return;
   }
 
+  // Setelah Level 1 selesai, portal Level 2 berada di Taman.
+  if(state.stage===5 && nearRect(parkArea,130)){
+    startLevel2Preview();
+    return;
+  }
+
   // Helpful contextual hints
   if(near(nadia,165)){
-    openDialogue('Nadia','Lanjutkan misi sesuai petunjuk di kiri bawah. Tanda ! menunjukkan lokasi berikutnya.');
+    if(state.stage===5){
+      openDialogue('Nadia','Level 1 sudah selesai. Gunakan tombol “Lanjut ke Level 2” atau pergi menuju portal LEVEL 2 di Taman.');
+    }else{
+      openDialogue('Nadia','Lanjutkan misi sesuai petunjuk di kiri bawah. Tanda ! menunjukkan lokasi berikutnya.');
+    }
     return;
   }
   if(nearRect(libraryArea,115)){
@@ -339,15 +353,47 @@ function completeLevel(){
     xp:100,
     completed_at:new Date().toISOString()
   }));
-  localStorage.setItem('pancapath_quest', JSON.stringify({
-    completed:true,
-    xp:100,
-    badge:'🏅 Pancasila Pathfinder',
-    route:'adventure-level-1',
-    completed_at:new Date().toISOString()
+
+  // Belum menandai seluruh PancaQuest selesai, karena masih ada Level 2–4.
+  localStorage.setItem('pancaquest_adventure_progress', JSON.stringify({
+    currentLevel:2,
+    level1Completed:true,
+    totalXp:100,
+    updated_at:new Date().toISOString()
   }));
-  openDialogue('🏆 Level 1 Selesai','Kamu memperoleh 100 XP dan Badge Pancasila Pathfinder. Level berikutnya dapat dikembangkan dari sini.');
+
+  updateQuestMarkers();
+  levelCompleteModal.classList.remove('hidden');
 }
+
+
+function startLevel2Preview(){
+  levelCompleteModal.classList.add('hidden');
+
+  // Transisi visual ke Level 2.
+  document.querySelector('.level-top span').textContent='LEVEL 2';
+  document.querySelector('.level-top strong').textContent='Taman Nilai • Kumpulkan Nilai Baik';
+  progressBar.style.width='0%';
+  progressText.textContent='0%';
+
+  missionTitle.textContent='Level 2 • Taman Nilai';
+  missionText.textContent='Masuki area Taman. Level berikutnya akan berfokus pada mengumpulkan nilai baik dan menghindari perilaku negatif.';
+
+  // Arahkan karakter mendekati Taman.
+  state.x = 76;
+  state.y = 52;
+  updatePlayer();
+
+  // Tampilkan penanda Taman sebagai pintu Level 2.
+  level2Portal.classList.remove('hidden');
+
+  openDialogue(
+    '🌳 Level 2 — Taman Nilai',
+    'Kamu sudah masuk ke gerbang Level 2. Pada pengembangan berikutnya, di sini kamu akan mengumpulkan Toleransi, Gotong Royong, Musyawarah, dan Keadilan sambil menghindari Egoisme, Diskriminasi, Intoleransi, serta Memaksakan Kehendak.'
+  );
+}
+
+goLevel2Btn.addEventListener('click', startLevel2Preview);
 
 closeQuizBtn.addEventListener('click',()=>quizModal.classList.add('hidden'));
 actionBtn.addEventListener('click',interact);

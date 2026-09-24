@@ -14,7 +14,7 @@
         <div class="brand-mark">📘</div>
         <div>
           <h1>PancaQuest <span>Adventure</span></h1>
-          <p>PancaPath • Kepribadian Bangsa • v1.2</p>
+          <p>PancaPath • Kepribadian Bangsa • v1.3</p>
         </div>
       </div>
 
@@ -72,6 +72,7 @@
       <!-- PARK -->
       <section class="park scene-card" id="parkArea">
         <div id="parkQuestMark" class="location-quest hidden">!</div>
+        <div id="level2Portal" class="level2-portal hidden">LEVEL 2<br><span>▶</span></div>
         <div id="parkPrompt" class="near-prompt hidden">E / AKSI</div>
         <div class="fountain"><div class="water"></div></div>
         <div class="park-sign">🌳 TAMAN</div>
@@ -220,6 +221,24 @@
         <p id="quizCase" class="quiz-case"></p>
         <div id="quizOptions" class="quiz-options"></div>
         <div id="quizFeedback" class="quiz-feedback"></div>
+      </div>
+    </div>
+
+
+    <!-- LEVEL COMPLETE / TRANSITION -->
+    <div id="levelCompleteModal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="level-complete-card">
+        <div class="trophy-big">🏆</div>
+        <span class="complete-kicker">LEVEL 1 SELESAI</span>
+        <h2>Sekolah • Kenali Nilainya</h2>
+        <p>Kamu telah menemukan nilai <strong>toleransi, musyawarah, persatuan, dan keadilan</strong>.</p>
+        <div class="complete-stats">
+          <div><small>XP Level</small><strong>100 XP</strong></div>
+          <div><small>Status</small><strong>✅ Selesai</strong></div>
+        </div>
+        <button id="goLevel2Btn" class="next-level-btn">Lanjut ke Level 2 →</button>
+        <small class="next-note">Level 2: Taman Nilai • Kumpulkan Nilai Baik</small>
       </div>
     </div>
 

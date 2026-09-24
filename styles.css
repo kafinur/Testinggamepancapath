@@ -241,3 +241,36 @@ kbd{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-rig
   animation:promptPulse .85s ease-in-out infinite alternate;
 }
 @keyframes promptPulse{to{transform:translateX(-50%) scale(1.08)}}
+
+/* ===== v1.3 level transition ===== */
+.level-complete-card{
+  position:relative;z-index:2;width:min(520px,92vw);padding:30px 26px;
+  border-radius:26px;text-align:center;color:#fff;
+  background:linear-gradient(160deg,#143c9a,#0b286f 58%,#101d4f);
+  border:2px solid rgba(255,255,255,.18);
+  box-shadow:0 32px 100px rgba(0,0,0,.42);
+}
+.trophy-big{font-size:4.5rem;animation:trophyFloat 1s ease-in-out infinite alternate}
+@keyframes trophyFloat{to{transform:translateY(-7px) rotate(3deg)}}
+.complete-kicker{display:block;color:#ffe267;font-weight:1000;letter-spacing:.12em;font-size:.72rem;margin:8px 0}
+.level-complete-card h2{margin:5px 0 10px;font-size:1.5rem}
+.level-complete-card p{color:#dbe8ff;line-height:1.5}
+.complete-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}
+.complete-stats>div{padding:12px;border-radius:14px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12)}
+.complete-stats small{display:block;color:#aec8ff}.complete-stats strong{display:block;margin-top:3px}
+.next-level-btn{
+  width:100%;padding:13px 16px;border:0;border-radius:13px;cursor:pointer;
+  background:linear-gradient(135deg,#ffca28,#ff8f00);color:#102050;font-weight:1000;font-size:1rem;
+  box-shadow:0 12px 24px rgba(255,153,0,.22)
+}
+.next-note{display:block;margin-top:9px;color:#c4d5ff}
+
+.level2-portal{
+  position:absolute;left:50%;top:-58px;transform:translateX(-50%);
+  z-index:50;text-align:center;color:#fff;font-weight:1000;font-size:12px;line-height:1.1;
+  padding:8px 12px;border-radius:14px;background:linear-gradient(145deg,#7c3aed,#2563eb);
+  border:2px solid #fff;box-shadow:0 0 0 5px rgba(124,58,237,.18),0 10px 25px rgba(28,49,119,.3);
+  animation:portalPulse .8s ease-in-out infinite alternate;
+}
+.level2-portal span{font-size:18px;color:#ffe45d}
+@keyframes portalPulse{to{transform:translateX(-50%) translateY(-7px) scale(1.05)}}
